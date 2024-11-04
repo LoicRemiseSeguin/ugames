@@ -8,7 +8,7 @@ router.post('/', async (req, res) => {
     const game = await Game.create(req.body);
     res.status(201).json(game);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
     const games = await Game.findAll();
     res.json(games);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -32,7 +32,7 @@ router.get('/:id', async (req, res) => {
       res.status(404).json({ error: 'Game not found' });
     }
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -49,7 +49,7 @@ router.put('/:id', async (req, res) => {
       res.status(404).json({ error: 'Game not found' });
     }
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -65,7 +65,7 @@ router.delete('/:id', async (req, res) => {
       res.status(404).json({ error: 'Game not found' });
     }
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
