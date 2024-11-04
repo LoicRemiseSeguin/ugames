@@ -8,7 +8,7 @@ router.post('/', async (req, res) => {
     const friend = await Friend.create(req.body);
     res.status(201).json(friend);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
     const friends = await Friend.findAll();
     res.json(friends);
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -37,7 +37,7 @@ router.get('/:user_id1/:user_id2', async (req, res) => {
       res.status(404).json({ error: 'Friendship not found' });
     }
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -62,7 +62,7 @@ router.put('/:user_id1/:user_id2', async (req, res) => {
       res.status(404).json({ error: 'Friendship not found' });
     }
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -81,7 +81,7 @@ router.delete('/:user_id1/:user_id2', async (req, res) => {
       res.status(404).json({ error: 'Friendship not found' });
     }
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
