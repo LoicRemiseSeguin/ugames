@@ -4,5 +4,5 @@
 
 ```
     cd backend
-    ./start-server.sh
+    ./start-server.sh mysql_username mysql_password  [--reset-db]
 ```
