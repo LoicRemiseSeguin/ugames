@@ -11,7 +11,7 @@ enum LogState {
 
 
 export default function Header() {
-    const logState = LogState.Logging;
+    const logState = LogState.NotLogged;
     // const [logState, setLogState] = useState(LogState.NotLogged);
 
     // const pathname = usePathname();
@@ -71,18 +71,22 @@ export default function Header() {
 
                     {/* Auth Buttons */}
                     <div className="flex items-center space-x-4">
-                        <Link
-                            href="/signup"
-                            className="text-primary hover:text-secondary transition-colors"
-                        >
-                            Sign-Up
-                        </Link>
-                        <Link
-                            href="/login"
-                            className="border border-primary px-4 py-1 rounded hover:bg-primary/10 transition-colors"
-                        >
-                            Log In
-                        </Link>
+                        {
+                            logState.valueOf() === LogState.NotLogged ? <>
+                                <Link
+                                    href="/signup"
+                                    className="text-primary hover:text-secondary transition-colors"
+                                >
+                                    Sign-Up
+                                </Link>
+                                <Link
+                                    href="/login"
+                                    className="border border-primary px-4 py-1 rounded hover:bg-primary/10 transition-colors"
+                                >
+                                    Log In
+                                </Link>
+                            </> : <p>logged</p>
+                        }
                     </div>
                 </div>
             </div>
