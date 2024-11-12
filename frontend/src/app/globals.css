@@ -1,0 +1,58 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --primary: 287 100% 68%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 173 80% 50%;
+    --secondary-foreground: 0 0% 9%;
+
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+
+    --accent: 173 80% 50%;
+    --accent-foreground: 0 0% 98%;
+
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 287 100% 68%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-neutral-800;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  input {
+    @apply bg-muted text-foreground border-secondary/20 focus:border-secondary transition-colors duration-200;
+  }
+
+  button {
+    @apply rounded-md transition-colors duration-200;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-secondary hover:bg-secondary/90 text-secondary-foreground px-4 py-2;
+  }
+
+  .btn-outline {
+    @apply border border-secondary/20 hover:bg-secondary/10 text-foreground px-4 py-2;
+  }
+
+  .input-field {
+    @apply w-full rounded-md border px-3 py-2 text-sm;
+  }
+}
