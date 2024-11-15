@@ -56,6 +56,9 @@ module.exports = {
           foreground: "hsl(var(--accent-foreground))",
         },
       },
+      minHeight: {
+        'screen-footer': 'calc(100vh - 80px)', // Adjust the value based on your footer height
+      }
     },
   },
   plugins: [],
