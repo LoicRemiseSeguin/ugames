@@ -1,7 +1,7 @@
 const express = require('express');
 const { User } = require('../models');
 const authenticate = require('../middlewares/auth');
-const checkAdminOrSelf = require('../middlewares/permissions');
+const { checkAdmin, checkAdminOrSelf } = require('../middlewares/permissions');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
@@ -13,11 +13,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.get('/', authenticate, async (req, res) => {
-  if (!req.user.is_admin) {
-    return res.status(403).json({ error: 'Accès interdit' });
-  }
-
+router.get('/', authenticate, checkAdmin, async (req, res) => {
   try {
     const users = await User.findAll();
     res.json(users);
