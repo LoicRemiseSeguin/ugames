@@ -1,5 +1,5 @@
 const express = require('express');
-const { User } = require('../models');
+const { User, EventParticipant } = require('../models');
 const authenticate = require('../middlewares/auth');
 const { checkAdmin, checkAdminOrSelf } = require('../middlewares/permissions');
 const router = express.Router();
@@ -61,6 +61,19 @@ router.delete('/:id', authenticate, checkAdminOrSelf, async (req, res) => {
     } else {
       res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/:id/events', authenticate, checkAdminOrSelf, async (req, res) => {
+  try {
+    const events = await EventParticipant.findAll({
+      where: { user_id: req.params.id },
+      attributes: ['event_id'],
+    });
+    const eventIds = events.map(event => event.event_id);
+    res.json(eventIds);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
