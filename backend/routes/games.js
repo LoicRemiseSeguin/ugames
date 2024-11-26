@@ -2,7 +2,6 @@ const express = require('express');
 const { Game } = require('../models');
 const router = express.Router();
 
-// CREATE Game
 router.post('/', async (req, res) => {
   try {
     const game = await Game.create(req.body);
@@ -12,7 +11,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// READ All Games
 router.get('/', async (req, res) => {
   try {
     const games = await Game.findAll();
@@ -22,7 +20,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// READ One Game
 router.get('/:id', async (req, res) => {
   try {
     const game = await Game.findByPk(req.params.id);
@@ -36,7 +33,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// UPDATE Game
 router.put('/:id', async (req, res) => {
   try {
     const [updated] = await Game.update(req.body, {
@@ -53,7 +49,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE Game
 router.delete('/:id', async (req, res) => {
   try {
     const deleted = await Game.destroy({

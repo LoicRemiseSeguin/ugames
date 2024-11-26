@@ -1,12 +1,13 @@
-# Prerequisites
-
-- Check that mysql is installed correctly
-- Check that node is installed correctly
-
 # Launch backend server
 ```
     cd backend
-    ./start-server.sh mysql_username mysql_password  [--reset-db]
+    docker-compose up -d --build
+```
+
+# Shutdown backend server
+```
+    cd backend
+    docker-compose down -v
 ```
 
 # Launch frontend server

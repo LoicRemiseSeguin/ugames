@@ -2,7 +2,6 @@ const express = require('express');
 const { Event } = require('../models');
 const router = express.Router();
 
-// CREATE Event
 router.post('/', async (req, res) => {
   try {
     const event = await Event.create(req.body);
@@ -12,7 +11,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// READ All Events
 router.get('/', async (req, res) => {
   try {
     const events = await Event.findAll();
@@ -22,7 +20,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// READ One Event
 router.get('/:id', async (req, res) => {
   try {
     const event = await Event.findByPk(req.params.id);
@@ -36,7 +33,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// UPDATE Event
 router.put('/:id', async (req, res) => {
   try {
     const [updated] = await Event.update(req.body, {
@@ -53,7 +49,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE Event
 router.delete('/:id', async (req, res) => {
   try {
     const deleted = await Event.destroy({

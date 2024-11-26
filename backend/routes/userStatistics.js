@@ -2,7 +2,6 @@ const express = require('express');
 const { UserStatistic } = require('../models');
 const router = express.Router();
 
-// CREATE UserStatistic
 router.post('/', async (req, res) => {
   try {
     const stat = await UserStatistic.create(req.body);
@@ -12,7 +11,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// READ All UserStatistics
 router.get('/', async (req, res) => {
   try {
     const stats = await UserStatistic.findAll();
@@ -22,7 +20,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// READ One UserStatistic
 router.get('/:user_id/:game_id', async (req, res) => {
   try {
     const stat = await UserStatistic.findOne({
@@ -41,7 +38,6 @@ router.get('/:user_id/:game_id', async (req, res) => {
   }
 });
 
-// UPDATE UserStatistic
 router.put('/:user_id/:game_id', async (req, res) => {
   try {
     const [updated] = await UserStatistic.update(req.body, {
@@ -66,7 +62,6 @@ router.put('/:user_id/:game_id', async (req, res) => {
   }
 });
 
-// DELETE UserStatistic
 router.delete('/:user_id/:game_id', async (req, res) => {
   try {
     const deleted = await UserStatistic.destroy({

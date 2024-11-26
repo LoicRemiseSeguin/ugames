@@ -2,7 +2,6 @@ const express = require('express');
 const { Friend } = require('../models');
 const router = express.Router();
 
-// CREATE Friend
 router.post('/', async (req, res) => {
   try {
     const friend = await Friend.create(req.body);
@@ -12,7 +11,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// READ All Friends
 router.get('/', async (req, res) => {
   try {
     const friends = await Friend.findAll();
@@ -22,7 +20,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// READ One Friendship
 router.get('/:user_id1/:user_id2', async (req, res) => {
   try {
     const friend = await Friend.findOne({
@@ -41,7 +38,6 @@ router.get('/:user_id1/:user_id2', async (req, res) => {
   }
 });
 
-// UPDATE Friend
 router.put('/:user_id1/:user_id2', async (req, res) => {
   try {
     const [updated] = await Friend.update(req.body, {
@@ -66,7 +62,6 @@ router.put('/:user_id1/:user_id2', async (req, res) => {
   }
 });
 
-// DELETE Friend
 router.delete('/:user_id1/:user_id2', async (req, res) => {
   try {
     const deleted = await Friend.destroy({

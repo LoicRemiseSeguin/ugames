@@ -1,10 +1,14 @@
 const Sequelize = require('sequelize');
-const config = require('../config');
 
-const sequelize = new Sequelize(config.database, config.username, config.password, {
-  host: config.host,
-  dialect: config.dialect,
-});
+const sequelize = new Sequelize(
+    process.env.PG_DB,
+    process.env.PG_USER,
+    process.env.PG_PASSWORD,
+    {
+        host: process.env.PG_HOST,
+        dialect: 'postgres',
+    }
+);
 
 sequelize.sync
 
@@ -13,7 +17,6 @@ const db = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-// Importer les modèles
 db.User = require('./user')(sequelize, Sequelize);
 db.Game = require('./game')(sequelize, Sequelize);
 db.Event = require('./event')(sequelize, Sequelize);
@@ -22,7 +25,6 @@ db.EventParticipant = require('./eventParticipant')(sequelize, Sequelize);
 db.Friend = require('./friend')(sequelize, Sequelize);
 db.UserStatistic = require('./userStatistic')(sequelize, Sequelize);
 
-// Définir les relations (foreign keys)
 db.User.hasMany(db.Event, { foreignKey: 'creator_id' });
 db.Game.hasMany(db.Event, { foreignKey: 'game_id' });
 db.User.belongsToMany(db.Event, { through: db.EventParticipant, foreignKey: 'user_id' });

@@ -3,6 +3,9 @@ const { User, EventParticipant } = require('../models');
 const authenticate = require('../middlewares/auth');
 const { checkAdmin, checkAdminOrSelf } = require('../middlewares/permissions');
 const router = express.Router();
+const bcrypt = require('bcrypt');
+const SECRET_KEY = 'boardgame';
+const jwt = require('jsonwebtoken');
 
 router.post('/', async (req, res) => {
   try {
@@ -74,6 +77,28 @@ router.get('/:id/events', authenticate, checkAdminOrSelf, async (req, res) => {
     });
     const eventIds = events.map(event => event.event_id);
     res.json(eventIds);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const user = await User.findOne({ where: { username } });
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+    const validPassword = await bcrypt.compare(password, user.password_hash);
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Mot de passe incorrect' });
+    }
+    const token = jwt.sign(
+      { id: user.user_id, username: user.username, is_admin: user.is_admin },
+      SECRET_KEY,
+      { expiresIn: '24h' }
+    );
+    res.json({ token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

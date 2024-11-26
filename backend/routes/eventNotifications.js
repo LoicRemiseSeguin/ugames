@@ -2,7 +2,6 @@ const express = require('express');
 const { EventNotification } = require('../models');
 const router = express.Router();
 
-// CREATE EventNotification
 router.post('/', async (req, res) => {
   try {
     const notification = await EventNotification.create(req.body);
@@ -12,7 +11,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// READ All EventNotifications
 router.get('/', async (req, res) => {
   try {
     const notifications = await EventNotification.findAll();
@@ -22,7 +20,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// READ One EventNotification
 router.get('/:id', async (req, res) => {
   try {
     const notification = await EventNotification.findByPk(req.params.id);
@@ -36,7 +33,6 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// UPDATE EventNotification
 router.put('/:id', async (req, res) => {
   try {
     const [updated] = await EventNotification.update(req.body, {
@@ -53,7 +49,6 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-// DELETE EventNotification
 router.delete('/:id', async (req, res) => {
   try {
     const deleted = await EventNotification.destroy({

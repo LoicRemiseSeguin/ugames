@@ -2,7 +2,6 @@ const express = require('express');
 const { EventParticipant } = require('../models');
 const router = express.Router();
 
-// CREATE EventParticipant
 router.post('/', async (req, res) => {
   try {
     const eventParticipant = await EventParticipant.create(req.body);
@@ -12,7 +11,6 @@ router.post('/', async (req, res) => {
   }
 });
 
-// READ All EventParticipants
 router.get('/', async (req, res) => {
   try {
     const participants = await EventParticipant.findAll();
@@ -22,7 +20,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// READ One EventParticipant
 router.get('/:user_id/:event_id', async (req, res) => {
   try {
     const participant = await EventParticipant.findOne({
@@ -41,7 +38,6 @@ router.get('/:user_id/:event_id', async (req, res) => {
   }
 });
 
-// UPDATE EventParticipant
 router.put('/:user_id/:event_id', async (req, res) => {
   try {
     const [updated] = await EventParticipant.update(req.body, {
@@ -66,7 +62,6 @@ router.put('/:user_id/:event_id', async (req, res) => {
   }
 });
 
-// DELETE EventParticipant
 router.delete('/:user_id/:event_id', async (req, res) => {
   try {
     const deleted = await EventParticipant.destroy({
