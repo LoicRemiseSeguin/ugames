@@ -1,8 +1,21 @@
+"use client";
+
 import EventCard from "@/components/eventCard";
 import SearchBar from "@/components/searchBar";
-import eventsData from './mock-events.json';
+import { eventService } from "@/services/events";
+import { useState } from "react";
+// import eventsData from './mock-events.json';
 
 const SearchPage = () => {
+    const [eventsData, setEventsData] = useState([]);
+
+    const setup = async () => {
+        const res = await eventService.getAllEvents();
+        setEventsData(res);
+    };
+
+    setup();
+
     return (
         <div className="min-h-screen">
             {/* Search Section */}
@@ -16,7 +29,7 @@ const SearchPage = () => {
             {/* <section className="container mx-auto px-4 py-8"> */}
             <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 p-6">
                 {/* Add your search results content here */}
-                {eventsData.events.map((event) => (
+                {eventsData?.map((event) => (
                     <EventCard
                         key={event.id}
                         {...event}

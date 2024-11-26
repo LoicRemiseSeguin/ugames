@@ -1,77 +1,75 @@
-{
-    "events": [
-        {
-            "id": "1",
-            "boardGame": "Catan",
-            "eventName": "Weekend Settlers",
-            "image": "/src/logos/UGs_Logo.png",
-            "playerCount": 4,
-            "date": "26.09.2024",
-            "tags": [
-                {
-                    "id": "1",
-                    "name": "Strategy"
-                },
-                {
-                    "id": "2",
-                    "name": "Beginner Friendly"
-                },
-                {
-                    "id": "3",
-                    "name": "English"
-                }
-            ],
-            "user": {
-                "name": "User",
-                "type": "Avid Gamer"
+[
+    {
+        "id": "1",
+        "boardGame": "Catan",
+        "eventName": "Weekend Settlers",
+        "image": "/src/logos/UGs_Logo.png",
+        "playerCount": 4,
+        "date": "26.09.2024",
+        "tags": [
+            {
+                "id": "1",
+                "name": "Strategy"
             },
-            "isLiked": false
+            {
+                "id": "2",
+                "name": "Beginner Friendly"
+            },
+            {
+                "id": "3",
+                "name": "English"
+            }
+        ],
+        "user": {
+            "name": "User",
+            "type": "Avid Gamer"
         },
-        {
-            "id": "2",
-            "boardGame": "Ticket to Ride",
-            "eventName": "Europe Express",
-            "image": "/src/logos/UGs_Logo.png",
-            "playerCount": 5,
-            "date": "28.09.2024",
-            "tags": [
-                {
-                    "id": "4",
-                    "name": "Family"
-                },
-                {
-                    "id": "5",
-                    "name": "Casual"
-                }
-            ],
-            "user": {
-                "name": "GameMaster",
-                "type": "Expert"
+        "isLiked": false
+    },
+    {
+        "id": "2",
+        "boardGame": "Ticket to Ride",
+        "eventName": "Europe Express",
+        "image": "/src/logos/UGs_Logo.png",
+        "playerCount": 5,
+        "date": "28.09.2024",
+        "tags": [
+            {
+                "id": "4",
+                "name": "Family"
             },
-            "isLiked": true
+            {
+                "id": "5",
+                "name": "Casual"
+            }
+        ],
+        "user": {
+            "name": "GameMaster",
+            "type": "Expert"
         },
-        {
-            "id": "3",
-            "boardGame": "Pandemic",
-            "eventName": "Save the World",
-            "image": "/src/logos/UGs_Logo.png",
-            "playerCount": 4,
-            "date": "30.09.2024",
-            "tags": [
-                {
-                    "id": "6",
-                    "name": "Cooperative"
-                },
-                {
-                    "id": "7",
-                    "name": "Strategy"
-                }
-            ],
-            "user": {
-                "name": "BoardGamePro",
-                "type": "Veteran"
+        "isLiked": true
+    },
+    {
+        "id": "3",
+        "boardGame": "Pandemic",
+        "eventName": "Save the World",
+        "image": "/src/logos/UGs_Logo.png",
+        "playerCount": 4,
+        "date": "30.09.2024",
+        "tags": [
+            {
+                "id": "6",
+                "name": "Cooperative"
             },
-            "isLiked": false
-        }
-    ]
-}
+            {
+                "id": "7",
+                "name": "Strategy"
+            }
+        ],
+        "user": {
+            "name": "BoardGamePro",
+            "type": "Veteran"
+        },
+        "isLiked": false
+    }
+]
