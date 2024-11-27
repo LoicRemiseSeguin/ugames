@@ -6,7 +6,10 @@ const app = express();
 
 app.use(bodyparser.json());
 app.use(bodyparser.urlencoded({ extended: false }));
-
+app.use((req,res,next) => {
+    res.setHeader('Access-Control-Allow-Origin','*');
+    next();
+});
 app.use('/api', routes);
 
 db.sequelize

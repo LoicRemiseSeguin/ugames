@@ -22,4 +22,6 @@ services:
       - POSTGRES_USER=loic
       - POSTGRES_PASSWORD=12345
     volumes:
-      - ./data:/var/lib/postgresql/data
+      - node_db_data:/var/lib/postgresql/data
+volumes:
+  node_db_data: {}
