@@ -1,7 +1,6 @@
 const express = require('express');
-const { Event } = require('../models');
 const { Op } = require('sequelize');
-const { Game } = require('../models');
+const { Event, Game } = require('../models');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
@@ -24,7 +23,7 @@ router.get('/', async (req, res) => {
 
 router.get('/upcoming', async (req, res) => {
   try {
-    const { city, date, max_time } = req.query;
+    const { city, date, game_name } = req.query;
     const whereConditions = {
       event_date: {
         [Op.gt]: new Date()
@@ -38,29 +37,25 @@ router.get('/upcoming', async (req, res) => {
         [Op.eq]: new Date(date)
       };
     }
-    if (max_time) {
-      whereConditions.game_id = {
-        [Op.in]: await getGamesWithinTime(max_time)
-      };
+    const queryOptions = {
+      where: whereConditions,
+      include: []
+    };
+    if (game_name) {
+      queryOptions.include.push({
+        model: Game,
+        where: { name: game_name },
+        required: true,
+        attributes: []
+      });
     }
-    const filteredEvents = await Event.findAll({
-      where: whereConditions
-    });
+    const filteredEvents = await Event.findAll(queryOptions);
     res.json(filteredEvents);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
-
-async function getGamesWithinTime(maxTime) {
-  const games = await Game.findAll({
-    attributes: ['game_id'],
-    where: {
-      average_playtime: { [Op.lte]: maxTime }
-    }
-  });
-  return games.map(game => game.game_id);
-}
 
 router.get('/:id', async (req, res) => {
   try {
