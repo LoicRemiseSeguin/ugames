@@ -1,5 +1,6 @@
 const express = require('express');
 const { Event } = require('../models');
+const { Op } = require('sequelize');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
@@ -15,6 +16,21 @@ router.get('/', async (req, res) => {
   try {
     const events = await Event.findAll();
     res.json(events);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/upcoming', async (req, res) => {
+  try {
+    const upcomingEvents = await Event.findAll({
+      where: {
+        event_date: {
+          [Op.gt]: new Date()
+        }
+      }
+    });
+    res.json(upcomingEvents);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
