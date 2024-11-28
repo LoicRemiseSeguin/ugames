@@ -1,0 +1,35 @@
+services:
+  frontend:
+    container_name: boardgame_frontend
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - API_URL=http://localhost:4000
+    restart: always
+  backend:
+    container_name: boardgame_backend
+    build: ./backend
+    ports:
+      - "4000:3000"
+    environment:
+      - PG_DB=boardgame
+      - PG_USER=boardgame
+      - PG_PASSWORD=boardgame
+      - PG_HOST=db
+    depends_on:
+      - db
+    restart: always
+  db:
+    container_name: boardgame_db
+    image: postgres:12
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=boardgame
+      - POSTGRES_USER=boardgame
+      - POSTGRES_PASSWORD=boardgame
+    volumes:
+      - boardgame:/var/lib/postgresql/data
+volumes:
+  boardgame: {}

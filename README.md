@@ -1,24 +1,14 @@
-# Launch backend
+# Launching the application
 ```
-    cd backend
     docker-compose up -d --build
 ```
 
-# Add data to db
+# add fake data to the application
 ```
-    cd backend
     ./data.sh
 ```
 
-# Shutdown backend
+# Stopping the application
 ```
-    cd backend
     docker-compose down -v
-```
-
-# Launch frontend
-```
-    cd frontend
-    npm install
-    npm run dev
 ```
