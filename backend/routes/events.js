@@ -1,6 +1,6 @@
 const express = require('express');
 const { Op } = require('sequelize');
-const { Event, Game } = require('../models');
+const { Event, Game, EventParticipant } = require('../models');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
@@ -97,6 +97,18 @@ router.delete('/:id', async (req, res) => {
       res.status(404).json({ error: 'Event not found' });
     }
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/:id/nbParticipants', async (req, res) => {
+  try {
+    const count = await EventParticipant.count({
+      where: { event_id: req.params.id }
+    });
+    res.json({ event_id: req.params.id, participant_count: count });
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
