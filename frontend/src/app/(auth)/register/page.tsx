@@ -1,14 +1,97 @@
-// src/pages/signup/page.tsx
-import React from 'react';
+"use client";
+
+import { useAuth } from '@/hooks/authContext';
+import { RegisterModel } from '@/services/auth';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
 
 export default function SignUp() {
+
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const { register, login } = useAuth();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const form = e.currentTarget;
+      const emailInput = form.email as HTMLInputElement;
+      const usernameInput = form['first-name'] as HTMLInputElement;
+      const passwordInput = form.password as HTMLInputElement;
+
+      const registerData: RegisterModel = {
+        email: emailInput.value,
+        username: usernameInput.value,
+        password_hash: passwordInput.value
+      };
+
+      await register(registerData);
+
+      // If registration successful, attempt to login
+      try {
+        const loginData = {
+          username: usernameInput.value,
+          password: passwordInput.value
+        };
+
+        await login(loginData);
+
+        // If login successful, redirect to callback URL or home
+        const callbackUrl = searchParams.get('callbackUrl');
+        const isValidRedirect = callbackUrl && (
+          callbackUrl.startsWith('/') ||
+          callbackUrl.startsWith(window.location.origin)
+        );
+
+        if (isValidRedirect) {
+          router.push(callbackUrl);
+        } else {
+          router.push('/');
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (loginErr) {
+        // If login fails but registration succeeded, redirect to login page
+        router.push('/login');
+      }
+
+      // const callbackUrl = searchParams.get('callbackUrl');
+
+      // // Basic security check for the redirect URL
+      // const isValidRedirect = callbackUrl && (
+      //   callbackUrl.startsWith('/') ||
+      //   callbackUrl.startsWith(window.location.origin)
+      // );
+
+      // if (isValidRedirect) {
+      //   router.push(callbackUrl);
+      // } else {
+      //   router.push('/');
+      // }
+
+      // // Refresh the router cache
+      // // router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Register failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-background border border-border rounded-lg shadow-lg p-8">
         {/* Left Section: Form */}
         <div className="w-full md:w-1/2">
           <h1 className="text-4xl font-bold text-primary mb-8">Sign Up</h1>
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="flex space-x-4">
               <div className="w-1/2">
                 <label className="text-sm text-primary" htmlFor="first-name">First Name*</label>
@@ -64,9 +147,15 @@ export default function SignUp() {
               <label htmlFor="agreement" className="text-sm text-muted-foreground">Agreements</label>
             </div>
 
-            <button type="submit" className="btn-primary w-full text-lg font-semibold">
-              Sign Up
+            <button
+              type="submit"
+              className="btn-primary w-full text-lg font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing Up...' : 'Sign Up'}
             </button>
+
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </form>
 
           <div className="mt-6 flex space-x-2">

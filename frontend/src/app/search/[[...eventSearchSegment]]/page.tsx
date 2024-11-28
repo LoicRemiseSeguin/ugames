@@ -10,7 +10,7 @@ const SearchPage = () => {
     const [eventsData, setEventsData] = useState([]);
 
     const setup = async () => {
-        const res = await eventService.getAllEvents();
+        const res = await eventService.getAll();
         setEventsData(res);
     };
 

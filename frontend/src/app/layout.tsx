@@ -4,7 +4,8 @@ import Header from "@/components/header"
 import type { Metadata } from "next";
 // import localFont from "next/font/local";
 import "./globals.css";
-import { AuthProvider } from "@/api/authContext";
+import { AuthProvider } from "@/hooks/authContext";
+import { EventProvider } from "@/hooks/useEvents";
 
 // const geistSans = localFont({
 //     src: "../fonts/GeistVF.woff",
@@ -31,11 +32,13 @@ export default function RootLayout({
         <html lang="en" className="dark">
             <body className="min-h-screen bg-background font-sans antialiased">
                 <AuthProvider>
-                    <Header />
-                    <main className="container mx-auto px-4">
-                        {children}
-                    </main>
-                    <Footer />
+                    <EventProvider>
+                        <Header />
+                        <main className="container mx-auto px-4">
+                            {children}
+                        </main>
+                        <Footer />
+                    </EventProvider>
                 </AuthProvider>
             </body>
         </html>

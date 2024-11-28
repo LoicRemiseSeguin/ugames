@@ -4,5 +4,5 @@ import { useRouter } from "next/navigation";
 
 export default function Profile() {
     const router = useRouter();
-    router.push("profile/events");
+    router.push("/profile/events");
 }

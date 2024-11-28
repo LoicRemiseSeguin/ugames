@@ -1,14 +1,66 @@
-// src/pages/login/page.tsx
-import React from 'react';
+"use client";
+
+import { useAuth } from '@/hooks/authContext';
+import { LoginModel } from '@/services/auth';
+import { useRouter, useSearchParams } from 'next/navigation';
+import React, { useState } from 'react';
 
 export default function Login() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const { login } = useAuth();
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const form = e.currentTarget;
+      const emailInput = form.email as HTMLInputElement;
+      const passwordInput = form.password as HTMLInputElement;
+
+      const loginData: LoginModel = {
+        username: emailInput.value,
+        password: passwordInput.value
+      };
+
+      await login(loginData);
+
+      const callbackUrl = searchParams.get('callbackUrl');
+
+      // Basic security check for the redirect URL
+      const isValidRedirect = callbackUrl && (
+        callbackUrl.startsWith('/') ||
+        callbackUrl.startsWith(window.location.origin)
+      );
+
+      if (isValidRedirect) {
+        router.push(callbackUrl);
+      } else {
+        router.push('/');
+      }
+
+      // Refresh the router cache
+      // router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-background text-foreground px-4">
       <div className="flex flex-col md:flex-row w-full max-w-4xl bg-background border border-border rounded-lg shadow-lg p-8">
         {/* Section de gauche : Formulaire */}
         <div className="w-full md:w-1/2">
           <h1 className="text-4xl font-bold text-primary mb-8">Log In</h1>
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label className="text-sm text-primary" htmlFor="email">Email Address*</label>
               <input
@@ -38,16 +90,18 @@ export default function Login() {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <input id="remember" type="checkbox" className="form-checkbox" />
-                <label htmlFor="remember" className="text-sm text-muted-foreground">Remember me</label>
-              </div>
               <a href="#" className="text-sm text-primary underline">Forgot Password?</a>
             </div>
 
-            <button type="submit" className="btn-primary w-full text-lg font-semibold">
-              Log In
+            <button
+              type="submit"
+              className="btn-primary w-full text-lg font-semibold"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Logging in...' : 'Log In'}
             </button>
+
+            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </form>
 
           <div className="mt-6 flex space-x-2">

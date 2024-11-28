@@ -32,7 +32,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/api/authContext.tsx"
+    "src/hooks/authContext.tsx"
   ],
   "exclude": [
     "node_modules"

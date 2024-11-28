@@ -1,10 +1,56 @@
 "use client";
 
-import React from 'react';
+import { useState } from 'react';
 import { Camera, ChevronDown, X, Check } from 'lucide-react';
+import { useEvent } from '@/hooks/useEvents';
+import { EventModel } from '@/services/events';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/authContext';
 
 const CreateEventPage = () => {
-    const [showSuccessMessage, setShowSuccessMessage] = React.useState(false);
+
+    const router = useRouter();
+    const { isAuthenticated, token } = useAuth();
+    const { create } = useEvent();
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!isAuthenticated) return;
+
+        setError(null);
+        setIsLoading(true);
+
+        try {
+            const form = e.currentTarget;
+            const gameIdInput = form.email as HTMLInputElement;
+            const eventNameInput = form.password as HTMLInputElement;
+            const eventDescriptionInput = form.email as HTMLInputElement;
+            const isPublicInput = form.password as HTMLInputElement;
+            const cityInput = form.email as HTMLInputElement;
+
+            const eventData: EventModel = {
+                creator_id: token.id,
+                game_id: gameIdInput.value,
+                event_name: eventNameInput.value,
+                event_description: eventDescriptionInput.value,
+                is_public: isPublicInput.value,
+                city: cityInput.value
+            };
+
+            const newEvent = await create(eventData);
+
+            router.push(`/event/${newEvent.id}`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Login failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background p-6">
@@ -54,7 +100,7 @@ const CreateEventPage = () => {
                 <div className="border border-primary/20 rounded-lg p-6">
                     <h2 className="text-xl text-primary mb-6">Event Details</h2>
 
-                    <form className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-primary mb-2">Event Name*</label>

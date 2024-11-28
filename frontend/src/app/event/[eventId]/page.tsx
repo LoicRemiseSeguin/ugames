@@ -1,7 +1,9 @@
 "use client";
 
-import React from 'react';
-import { Calendar, Clock, Users, MapPin, Share2, Heart, MessageSquare } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Calendar, Clock, Users, MapPin, Share2, Heart/*, MessageSquare*/ } from 'lucide-react';
+import { useEvent } from '@/hooks/useEvents';
+import Loading from '@/components/loadingAnimation';
 
 export default function Event({ params }:
     { params: { eventId: string } }) {
@@ -9,7 +11,23 @@ export default function Event({ params }:
 
     const [isLiked, setIsLiked] = React.useState(false);
 
-    return (
+    const { eventData, getById } = useEvent();
+
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+
+        async function fetchEventData(id: string) {
+            setIsLoading(true);
+            await getById(id);
+            setIsLoading(false);
+        }
+        fetchEventData(params.eventId);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [eventData]);
+
+    return isLoading ? <Loading /> :
         <div className="min-h-screen bg-background">
             {/* Hero Section with Cover Image */}
             <div className="relative h-[400px] w-full">
@@ -71,7 +89,7 @@ export default function Event({ params }:
                             <h2 className="text-xl text-primary mb-4">About this Event</h2>
                             <p className="text-muted-foreground">
                                 Join us for an exciting evening of Commander, the most popular casual format in Magic: The Gathering.
-                                Whether you're a seasoned player or new to the format, all skill levels are welcome.
+                                Whether you&apos;re a seasoned player or new to the format, all skill levels are welcome.
                                 Bring your favorite deck or use one of our pre-constructed decks available for newcomers.
                             </p>
                         </div>
@@ -186,5 +204,4 @@ export default function Event({ params }:
                 </div>
             </div>
         </div>
-    );
 }

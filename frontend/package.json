@@ -11,8 +11,10 @@
   "dependencies": {
     "@headlessui/react": "^2.2.0",
     "@nextui-org/react": "^2.4.8",
+    "cookies-next": "^4.3.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^11.11.17",
+    "jwt-decode": "^4.0.0",
     "lucide-react": "^0.456.0",
     "next": "14.2.16",
     "react": "^18",

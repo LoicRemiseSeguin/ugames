@@ -31,7 +31,7 @@ const AboutPage = () => {
                         </p>
 
                         <p className="text-primary/80">
-                            The platform's main functionalities include a robust event management system, allowing users to
+                            The platform&apos;s main functionalities include a robust event management system, allowing users to
                             create public and private gaming sessions with detailed information such as game type, player
                             count, location, and time. A user-friendly calendar interface displays all upcoming events, making it
                             easy for members to plan their gaming schedule.
