@@ -1,5 +1,6 @@
 # Launching the application
 ```
+    export BOARDGAME_DB_PASSWORD=<changeme>
     docker-compose up -d --build
 ```
 
