@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:4000";//process.env.API_URL
+const API_URL = "DEFAULT_URL";
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
