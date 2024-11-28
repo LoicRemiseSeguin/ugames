@@ -42,6 +42,7 @@ export default function EditProfilePage() {
         if (token) {
             if (userData) {
                 setUsernameInputField(userData.username);
+                setBioInputField(userData.bio ?? "");
             } else {
                 fetchUserData(token.id);
             }
@@ -49,10 +50,18 @@ export default function EditProfilePage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [userData]);
 
+    // Username
     const [usernameInputField, setUsernameInputField] = useState<string>(userData ? userData.username : "");
 
     const onChangeUsernameInputField = (event: React.ChangeEvent<HTMLInputElement>) => {
         setUsernameInputField(event.target.value);
+    }
+
+    // Bio
+    const [bioInputField, setBioInputField] = useState<string>(userData ? userData.bio ?? "" : "");
+
+    const onChangeBioInputField = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setBioInputField(event.target.value);
     }
 
     return (
@@ -79,7 +88,7 @@ export default function EditProfilePage() {
                                 className="w-full bg-muted p-2 rounded-md border border-primary/20 focus:border-primary focus:outline-none"
                                 placeholder="Enter username"
                                 value={usernameInputField}
-                                onChange={onChangeUsernameInputField}
+                                onInput={onChangeUsernameInputField}
                             />
                         </div>
 
@@ -90,6 +99,8 @@ export default function EditProfilePage() {
                             <textarea
                                 className="w-full bg-muted p-2 rounded-md border border-primary/20 focus:border-primary focus:outline-none min-h-[100px]"
                                 placeholder="Tell us about yourself"
+                                value={bioInputField}
+                                onChange={onChangeBioInputField}
                             />
                         </div>
 

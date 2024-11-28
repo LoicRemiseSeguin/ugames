@@ -1,21 +1,28 @@
 import { fetchWrapper } from '@/api/fetchWrapper';
 
 export interface EventModel {
-    id?: string,
-    // name: string,
+    event_id?: string,
     creator_id?: string,
     game_id: number,
     event_name: string,
     event_description: string,
     event_date: Date,
     is_public: boolean,
-    city: string
+    city: string,
+    tags?: string[]
 };
 
 export interface EventFilter {
     city: string,
     event_date: Date,
+    game: string,
     tags: string[]
+};
+
+export interface JoinModel {
+    user_id: number,
+    event_id: number,
+    is_going?: boolean
 };
 
 export const eventService = {
@@ -35,35 +42,48 @@ export const eventService = {
         return fetchWrapper(`/api/events/${id}`);
     },
 
-    create: (event: EventModel) => {
+    create: (event: EventModel, undecodedToken: string) => {
         return fetchWrapper('/api/events', {
             method: 'POST',
-            body: event
+            body: event,
+            undecodedToken
         });
     },
 
-    update: (id: string, event: EventModel) => {
+    update: (id: string, event: EventModel, undecodedToken: string) => {
         return fetchWrapper(`/api/events/${id}`, {
             method: 'PUT',
-            body: event
+            body: event,
+            undecodedToken
         });
     },
 
-    delete: (id: string) => {
+    delete: (id: string, undecodedToken: string) => {
         return fetchWrapper(`/api/events/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            undecodedToken
         });
     },
 
-    join: (id: string) => {
+    join: (joinData: JoinModel, undecodedToken: string) => {
         return fetchWrapper('/api/event-participants', {
-            method: 'POST'
+            method: 'POST',
+            body: joinData,
+            undecodedToken
         });
     },
 
-    unjoin: (id: string) => {
-        return fetchWrapper(`/api/event-participants/:user_id/:event_id${id}`, {
-            method: 'DELETE'
+    getUserJoiningStatusByEvent: (userId: string, gameId: string, undecodedToken: string) => {
+        return fetchWrapper(`/api/event-participants/${userId}/${gameId}`, {
+            method: 'GET',
+            undecodedToken
+        });
+    },
+
+    unjoin: (userId: string, gameId: string, undecodedToken: string) => {
+        return fetchWrapper(`/api/event-participants/${userId}/${gameId}`, {
+            method: 'DELETE',
+            undecodedToken
         });
     },
 };

@@ -78,7 +78,7 @@ export default function Header() {
                         <Link href="/" className={`text-primary hover:text-secondary transition-colors py-1 ${isActive('/')}`}>
                             Home
                         </Link>
-                        <Link href="/search" className={`text-primary hover:text-secondary transition-colors py-1 ${isActive('/search')}`}>
+                        <Link href="/event/search" className={`text-primary hover:text-secondary transition-colors py-1 ${isActive('/event/search')}`}>
                             Search
                         </Link>
                         {isAuthenticated && (

@@ -6,12 +6,14 @@ import { useEvent } from '@/hooks/useEvents';
 import { EventModel } from '@/services/events';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/authContext';
+import { useGame } from '@/hooks/useGames';
 
 const CreateEventPage = () => {
 
     const router = useRouter();
     const { isAuthenticated, token } = useAuth();
     const { create } = useEvent();
+    const { games, getAll } = useGame();
 
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);

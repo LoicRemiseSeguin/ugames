@@ -41,15 +41,19 @@ export const userService = {
         });
     },
 
-    delete: (id: string) => {
+    delete: (id: string, undecodedToken: string) => {
         return fetchWrapper(`/api/users/${id}`, {
-            method: 'DELETE'
+            method: 'DELETE',
+            undecodedToken
         });
     },
 
     // Event
-    getUserEvents: (id: string) => {
-        return fetchWrapper(`/api/users/${id}/events`);
+    getUserEvents: (id: string, undecodedToken: string) => {
+        return fetchWrapper(`/api/users/${id}/events`, {
+            method: 'GET',
+            undecodedToken
+        });
     },
 
     // Statistics

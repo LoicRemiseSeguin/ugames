@@ -21,11 +21,11 @@ export default function Login() {
 
     try {
       const form = e.currentTarget;
-      const emailInput = form.email as HTMLInputElement;
+      const usernameInput = form.username as HTMLInputElement;
       const passwordInput = form.password as HTMLInputElement;
 
       const loginData: LoginModel = {
-        username: emailInput.value,
+        username: usernameInput.value,
         password: passwordInput.value
       };
 
@@ -61,11 +61,21 @@ export default function Login() {
         <div className="w-full md:w-1/2">
           <h1 className="text-4xl font-bold text-primary mb-8">Log In</h1>
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
+            {/* <div>
               <label className="text-sm text-primary" htmlFor="email">Email Address*</label>
               <input
                 id="email"
                 type="email"
+                placeholder="Placeholder"
+                className="input-field placeholder-muted-foreground"
+                required
+              />
+            </div> */}
+            <div>
+              <label className="text-sm text-primary">Username*</label>
+              <input
+                id="username"
+                // type="email"
                 placeholder="Placeholder"
                 className="input-field placeholder-muted-foreground"
                 required

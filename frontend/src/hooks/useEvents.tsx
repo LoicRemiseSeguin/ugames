@@ -1,16 +1,17 @@
 "use client";
 
-import { EventModel, eventService } from '@/services/events';
+import { EventModel, eventService, JoinModel } from '@/services/events';
 import { createContext, useContext, ReactNode, useState } from 'react';
 
 interface EventContextType {
     eventData: EventModel | null;
     getById: (id: string) => Promise<void>;
-    create: (eventData: EventModel) => Promise<void>;
-    update: (id: string, eventData: EventModel) => Promise<void>;
-    deleteEvent: (id: string) => Promise<void>;
-    join: (id: string) => Promise<void>;
-    unjoin: (id: string) => Promise<void>;
+    create: (eventData: EventModel, undecodedToken: string) => Promise<void>;
+    update: (id: string, eventData: EventModel, undecodedToken: string) => Promise<void>;
+    deleteEvent: (id: string, undecodedToken: string) => Promise<void>;
+    join: (joinData: JoinModel, undecodedToken: string) => Promise<void>;
+    getUserJoiningStatusByEvent: (userId: string, eventId: string, undecodedToken: string) => Promise<void>;
+    unjoin: (userId: string, eventId: string, undecodedToken: string) => Promise<void>;
 };
 
 interface EventProviderProps {
@@ -34,18 +35,18 @@ export const EventProvider = ({ children }: EventProviderProps) => {
         }
     };
 
-    const create = async (data: EventModel) => {
+    const create = async (data: EventModel, undecodedToken: string) => {
         try {
-            await eventService.create(data);
+            await eventService.create(data, undecodedToken);
         } catch (err) {
             console.error('Error creatinig event:', err);
             throw err;
         }
     };
 
-    const update = async (id: string, eventData: EventModel) => {
+    const update = async (id: string, eventData: EventModel, undecodedToken: string) => {
         try {
-            await eventService.update(id, eventData);
+            await eventService.update(id, eventData, undecodedToken);
             setEventData(eventData);
         } catch (err) {
             console.error('Error updating event:', err);
@@ -54,27 +55,36 @@ export const EventProvider = ({ children }: EventProviderProps) => {
         }
     };
 
-    const deleteEvent = async (id: string) => {
+    const deleteEvent = async (id: string, undecodedToken: string) => {
         try {
-            await eventService.delete(id);
+            await eventService.delete(id, undecodedToken);
         } catch (err) {
             console.error('Error deleting event:', err);
             throw err;
         }
     };
 
-    const join = async (id: string) => {
+    const join = async (joinData: JoinModel, undecodedToken: string) => {
         try {
-            await eventService.join(id);
+            await eventService.join(joinData, undecodedToken);
         } catch (err) {
             console.error('Error joining event:', err);
             throw err;
         }
     };
 
-    const unjoin = async (id: string) => {
+    const getUserJoiningStatusByEvent = async (userId: string, eventId: string, undecodedToken: string) => {
         try {
-            await eventService.unjoin(id);
+            await eventService.getUserJoiningStatusByEvent(userId, eventId, undecodedToken);
+        } catch (err) {
+            console.error('Error joining event:', err);
+            throw err;
+        }
+    };
+
+    const unjoin = async (userId: string, eventId: string, undecodedToken: string) => {
+        try {
+            await eventService.unjoin(userId, eventId, undecodedToken);
         } catch (err) {
             console.error('Error unjoining event:', err);
             throw err;
@@ -88,6 +98,7 @@ export const EventProvider = ({ children }: EventProviderProps) => {
         update,
         deleteEvent,
         join,
+        getUserJoiningStatusByEvent,
         unjoin
     };
 
