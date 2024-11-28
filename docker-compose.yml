@@ -5,7 +5,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      API_URL: "API_URL=https://k80484cs0cggwkksgw4kww80.attssystem.dev"
+      API_URL: "http://localhost:4000"
     restart: always
   backend:
     container_name: boardgame_backend
