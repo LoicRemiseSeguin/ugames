@@ -106,7 +106,7 @@ router.get('/:id/nbParticipants', async (req, res) => {
     const count = await EventParticipant.count({
       where: { event_id: req.params.id }
     });
-    res.json({ event_id: req.params.id, participant_count: count });
+    res.json({ participant_count: count });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
