@@ -1,0 +1,37 @@
+services:
+  frontend:
+    container_name: boardgame_frontend
+    build: ./frontend
+    expose:
+      - 3000
+    environment:
+      - SERVICE_FQDN_FRONTEND_3000
+      - API_URL=${SERVICE_FQDN_BACKEND_3000}
+    restart: always
+  backend:
+    container_name: boardgame_backend
+    build: ./backend
+    expose:
+      - 3000
+    environment:
+      - SERVICE_FQDN_BACKEND_3000
+      - PG_DB=boardgame
+      - PG_USER=boardgame
+      - PG_PASSWORD=${BOARDGAME_DB_PASSWORD}
+      - PG_HOST=db
+    depends_on:
+      - db
+    restart: always
+  db:
+    container_name: boardgame_db
+    image: postgres:12
+    expose:
+      - 5432
+    environment:
+      POSTGRES_DB: "boardgame"
+      POSTGRES_USER: "boardgame"
+      POSTGRES_PASSWORD: ${BOARDGAME_DB_PASSWORD}
+    volumes:
+      - boardgame:/var/lib/postgresql/data
+volumes:
+  boardgame: {}
