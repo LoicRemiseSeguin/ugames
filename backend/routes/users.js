@@ -25,7 +25,7 @@ router.get('/', authenticate, checkAdmin, async (req, res) => {
   }
 });
 
-router.get('/:id', authenticate, checkAdminOrSelf, async (req, res) => {
+router.get('/:id', authenticate, async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
     if (user) {
