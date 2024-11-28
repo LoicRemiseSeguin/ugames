@@ -1,5 +1,6 @@
 const express = require('express');
-const { Event } = require('../models');
+const { Op } = require('sequelize');
+const { Event, Game } = require('../models');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
@@ -16,6 +17,42 @@ router.get('/', async (req, res) => {
     const events = await Event.findAll();
     res.json(events);
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/upcoming', async (req, res) => {
+  try {
+    const { city, date, game_name } = req.query;
+    const whereConditions = {
+      event_date: {
+        [Op.gt]: new Date()
+      }
+    };
+    if (city) {
+      whereConditions.city = city;
+    }
+    if (date) {
+      whereConditions.event_date = {
+        [Op.eq]: new Date(date)
+      };
+    }
+    const queryOptions = {
+      where: whereConditions,
+      include: []
+    };
+    if (game_name) {
+      queryOptions.include.push({
+        model: Game,
+        where: { name: game_name },
+        required: true,
+        attributes: []
+      });
+    }
+    const filteredEvents = await Event.findAll(queryOptions);
+    res.json(filteredEvents);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });

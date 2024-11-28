@@ -32,5 +32,7 @@ db.Event.belongsToMany(db.User, { through: db.EventParticipant, foreignKey: 'eve
 db.User.belongsToMany(db.User, { as: 'Friends', through: db.Friend, foreignKey: 'user_id1', otherKey: 'user_id2' });
 db.User.hasMany(db.UserStatistic, { foreignKey: 'user_id' });
 db.Game.hasMany(db.UserStatistic, { foreignKey: 'game_id' });
+db.Game.hasMany(db.Event, { foreignKey: 'game_id' });
+db.Event.belongsTo(db.Game, { foreignKey: 'game_id' });
 
 module.exports = db;

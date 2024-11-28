@@ -1,16 +1,22 @@
-# Launch backend server
+# Launch backend
 ```
     cd backend
     docker-compose up -d --build
 ```
 
-# Shutdown backend server
+# Add data to db
+```
+    cd backend
+    ./data.sh
+```
+
+# Shutdown backend
 ```
     cd backend
     docker-compose down -v
 ```
 
-# Launch frontend server
+# Launch frontend
 ```
     cd frontend
     npm install
