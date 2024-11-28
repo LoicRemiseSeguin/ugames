@@ -1,8 +1,9 @@
 const express = require('express');
 const { EventParticipant } = require('../models');
 const router = express.Router();
+const authenticate = require('../middlewares/auth');
 
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
   try {
     const eventParticipant = await EventParticipant.create(req.body);
     res.status(201).json(eventParticipant);
@@ -11,7 +12,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.get('/', async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   try {
     const participants = await EventParticipant.findAll();
     res.json(participants);
@@ -20,7 +21,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.get('/:user_id/:event_id', async (req, res) => {
+router.get('/:user_id/:event_id', authenticate, async (req, res) => {
   try {
     const participant = await EventParticipant.findOne({
       where: {
@@ -38,7 +39,7 @@ router.get('/:user_id/:event_id', async (req, res) => {
   }
 });
 
-router.put('/:user_id/:event_id', async (req, res) => {
+router.put('/:user_id/:event_id', authenticate, async (req, res) => {
   try {
     const [updated] = await EventParticipant.update(req.body, {
       where: {
@@ -62,7 +63,7 @@ router.put('/:user_id/:event_id', async (req, res) => {
   }
 });
 
-router.delete('/:user_id/:event_id', async (req, res) => {
+router.delete('/:user_id/:event_id', authenticate, async (req, res) => {
   try {
     const deleted = await EventParticipant.destroy({
       where: {
