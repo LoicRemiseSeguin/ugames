@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BASE_URL="https://f8cos8wsgcc080o8kk08o4og.attssystem.dev"
+BASE_URL="http://localhost:4000"
 
 curl -X POST "$BASE_URL/api/users" \
 -H "Content-Type: application/json" \
