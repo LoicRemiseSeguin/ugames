@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useCallback, useEffect } from 'react';
 import { Combobox, Transition } from '@headlessui/react';
 import { DayPicker } from 'react-day-picker';
 import { ChevronDown, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
+import { useGame } from '@/hooks/useGames';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEvent } from '@/hooks/useEvents';
 
 // Mock data for dropdowns
 export const locations = [
@@ -42,65 +45,114 @@ export const useDropdown = () => {
 };
 
 const SearchBar = () => {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const { games } = useGame();
+    const { searchEvents } = useEvent();
+
+    const createQueryString = useCallback(
+        (params: { [key: string]: string }) => {
+            const current = new URLSearchParams(Array.from(searchParams.entries()));
+
+            // Update or add new parameters
+            Object.entries(params).forEach(([key, value]) => {
+                if (value) {
+                    current.set(key, value);
+                } else {
+                    current.delete(key);
+                }
+            });
+
+            return current.toString();
+        },
+        [searchParams]
+    );
+
+    useEffect(() => {
+        const city = searchParams.get('city');
+        const date = searchParams.get('date');
+        const gameName = searchParams.get('game_name');
+
+        if (city != null) setSelectedLocation(city);
+        if (date != null) setSelectedDate(new Date(date));
+        const previousGame = games.find(game => game.name == gameName);
+        if (previousGame != null) setSelectedGame(previousGame);
+    });
+
+    const handleSearch = () => {
+        const queryString = createQueryString({
+            city: selectedLocation,
+            date: selectedDate?.toISOString().split('T')[0] || '',
+            game_name: selectedGame?.name || ''
+        });
+
+        // This will update the URL without reloading the page
+        router.push(`/event/search?${queryString}`);
+        searchEvents(queryString);
+
+    };
+
+    // const handleSearch = () => {
+    //     console.log({
+    //         location: selectedLocation,
+    //         date: selectedDate.toISOString().split('T')[0],
+    //         game: selectedGame,
+    //         // tags: selectedTags
+    //     });
+    // };
+
+
     const [selectedLocation, setSelectedLocation] = useState<string>('');
     const [locationQuery, setLocationQuery] = useState('');
     const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
     const [isDateOpen, setIsDateOpen] = useState(false);
-    const [selectedTime, setSelectedTime] = useState<string>('');
-    const [timeQuery, setTimeQuery] = useState('');
-    const [selectedTags, setSelectedTags] = useState<string[]>([]);
-    const [tagQuery, setTagQuery] = useState('');
-    const tagsDropdown = useDropdown();
+    const [selectedGame, setSelectedGame] = useState<string>('');
+    const [gameQuery, setGameQuery] = useState('');
+    // const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    // const [tagQuery, setTagQuery] = useState('');
+    // const tagsDropdown = useDropdown();
 
     const handleLocationChange = (value: string | null) => {
         setSelectedLocation(value || '');
     };
 
-    const handleTimeChange = (value: string | null) => {
-        setSelectedTime(value || '');
+    const handleGameChange = (value: string | null) => {
+        setSelectedGame(value || '');
     };
 
-    const handleTagSelect = (value: string) => {
-        if (value && !selectedTags.includes(value)) {
-            setSelectedTags([...selectedTags, value]);
-            setTagQuery('');
-            tagsDropdown.close();
-        }
-    };
+    // const handleTagSelect = (value: string) => {
+    //     if (value && !selectedTags.includes(value)) {
+    //         setSelectedTags([...selectedTags, value]);
+    //         setTagQuery('');
+    //         tagsDropdown.close();
+    //     }
+    // };
 
     const clearLocation = () => {
         setSelectedLocation('');
         setLocationQuery('');
     };
 
-    const clearTime = () => {
-        setSelectedTime('');
-        setTimeQuery('');
+    const clearGame = () => {
+        setSelectedGame('');
+        setGameQuery('');
     };
 
     const filteredLocations = locationQuery === ''
         ? locations
         : locations.filter((location) => location.toLowerCase().includes(locationQuery.toLowerCase()));
 
-    const filteredTimes = timeQuery === ''
-        ? timeSlots
-        : timeSlots.filter((time) => time.toLowerCase().includes(timeQuery.toLowerCase()));
+    const filteredGames = gameQuery === ''
+        ? games
+        : games.filter((game) => game.name.toLowerCase().includes(gameQuery.toLowerCase()));
 
-    const filteredTags = tagQuery === ''
-        ? tagOptions
-        : tagOptions.filter((tag) => tag.toLowerCase().includes(tagQuery.toLowerCase()));
+    // const filteredTags = tagQuery === ''
+    //     ? tagOptions
+    //     : tagOptions.filter((tag) => tag.toLowerCase().includes(tagQuery.toLowerCase()));
 
     const today = new Date();
     const disabledDays = { before: today };
-
-    const handleSearch = () => {
-        console.log({
-            location: selectedLocation,
-            date: selectedDate,
-            time: selectedTime,
-            tags: selectedTags
-        });
-    };
 
     return (
         <div className="w-full bg-background/50 backdrop-blur-sm border border-primary/20 rounded-lg p-4">
@@ -208,25 +260,24 @@ const SearchBar = () => {
                         )}
                     </div>
 
-                    {/* Time Dropdown */}
                     <div className="relative">
-                        <label className="text-primary text-xl mb-1 block">Time</label>
-                        <Combobox value={selectedTime} onChange={handleTimeChange}>
+                        <label className="text-primary text-xl mb-1 block">Games</label>
+                        <Combobox value={selectedGame} onChange={handleGameChange}>
                             <div className="relative">
                                 <div className="relative">
                                     <Combobox.Input
                                         className="w-full bg-background border border-primary/20 rounded px-3 py-2 text-primary/80 focus:outline-none focus:border-primary pr-16"
-                                        displayValue={(time: string) => time}
-                                        onChange={(event) => setTimeQuery(event.target.value)}
-                                        placeholder="Select your time"
+                                        displayValue={(game: GameModel) => game.name}
+                                        onChange={(event) => setGameQuery(event.target.value)}
+                                        placeholder="Select your game"
                                     />
                                     <div className="absolute inset-y-0 right-0 flex items-center pr-2">
-                                        {selectedTime && (
+                                        {selectedLocation && (
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    clearTime();
+                                                    clearGame();
                                                 }}
                                                 className="p-1 hover:text-primary text-primary/60 mr-1"
                                             >
@@ -245,29 +296,33 @@ const SearchBar = () => {
                                     leaveTo="opacity-0"
                                 >
                                     <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-background border border-primary/20 py-1">
-                                        {filteredTimes.map((time) => (
-                                            <Combobox.Option
-                                                key={time}
-                                                value={time}
-                                                className={({ active }) =>
-                                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-primary/20 text-primary' : 'text-primary/60'
-                                                    }`
-                                                }
-                                            >
-                                                {({ selected }) => (
-                                                    <>
-                                                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
-                                                            {time}
-                                                        </span>
-                                                        {selected && (
-                                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
-                                                                <Check className="h-5 w-5" />
+                                        {filteredGames.length === 0 ? (
+                                            <div className="px-4 py-2 text-primary/60">Nothing found.</div>
+                                        ) : (
+                                            filteredGames.map((game) => (
+                                                <Combobox.Option
+                                                    key={game.name}
+                                                    value={game}
+                                                    className={({ active }) =>
+                                                        `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-primary/20 text-primary' : 'text-primary/60'
+                                                        }`
+                                                    }
+                                                >
+                                                    {({ selected }) => (
+                                                        <>
+                                                            <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                                {game.name}
                                                             </span>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </Combobox.Option>
-                                        ))}
+                                                            {selected && (
+                                                                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
+                                                                    <Check className="h-5 w-5" />
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    )}
+                                                </Combobox.Option>
+                                            ))
+                                        )}
                                     </Combobox.Options>
                                 </Transition>
                             </div>
@@ -275,7 +330,7 @@ const SearchBar = () => {
                     </div>
 
                     {/* Tags Multi-select */}
-                    <div className="relative">
+                    {/* <div className="relative">
                         <label className="text-primary text-xl mb-1 block">Tags</label>
                         <div className="relative">
                             <Combobox
@@ -318,7 +373,6 @@ const SearchBar = () => {
                                     </div>
                                 </div>
 
-                                {/* Selected Tags Pills */}
                                 {selectedTags.length > 0 && (
                                     <div className="flex flex-wrap gap-1 mt-2">
                                         {selectedTags.map((tag) => (
@@ -393,7 +447,7 @@ const SearchBar = () => {
                                 )}
                             </Combobox>
                         </div>
-                    </div>
+                    </div> */}
 
 
                     {/* Search Button */}

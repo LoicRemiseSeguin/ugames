@@ -75,13 +75,13 @@ const HomePage = () => {
                     </div>
 
                     {/* Placeholder image */}
-                    <div className="absolute top-40 right-0 w-1/3 aspect-square rounded-lg border border-secondary/20 flex items-center justify-center">
+                    {/* <div className="absolute top-40 right-0 w-1/3 aspect-square rounded-lg border border-secondary/20 flex items-center justify-center">
                         <svg className="w-16 h-16 text-secondary/40" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <rect x="3" y="3" width="18" height="18" rx="2" strokeWidth="2" />
                             <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
                             <path d="M21 15l-5-5L5 21" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
-                    </div>
+                    </div> */}
                 </div>
 
                 <div className="min-h-screen bg-background text-foreground">

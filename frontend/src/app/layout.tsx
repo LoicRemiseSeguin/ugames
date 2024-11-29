@@ -7,6 +7,7 @@ import "./globals.css";
 import { AuthProvider } from "@/hooks/authContext";
 import { EventProvider } from "@/hooks/useEvents";
 import { GameProvider } from "@/hooks/useGames";
+import { UserProvider } from "@/hooks/useUsers";
 
 // const geistSans = localFont({
 //     src: "../fonts/GeistVF.woff",
@@ -33,15 +34,17 @@ export default function RootLayout({
         <html lang="en" className="dark">
             <body className="min-h-screen bg-background font-sans antialiased">
                 <AuthProvider>
-                    <EventProvider>
-                        <GameProvider>
-                            <Header />
-                            <main className="container mx-auto px-4">
-                                {children}
-                            </main>
-                            <Footer />
-                        </GameProvider>
-                    </EventProvider>
+                    <UserProvider>
+                        <EventProvider>
+                            <GameProvider>
+                                <Header />
+                                <main className="container mx-auto px-4">
+                                    {children}
+                                </main>
+                                <Footer />
+                            </GameProvider>
+                        </EventProvider>
+                    </UserProvider>
                 </AuthProvider>
             </body>
         </html>

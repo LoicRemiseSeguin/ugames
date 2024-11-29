@@ -65,6 +65,10 @@ export const eventService = {
         });
     },
 
+    searchEvents: (params: string) => {
+        return fetchWrapper(`/api/events/upcoming?${params}`); // params = upcoming?city=Paris&date=2024-11-28&game_name=Monopoly
+    },
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     join: (joinData: JoinModel, undecodedToken: string) => {
         return fetchWrapper('/api/event-participants', {

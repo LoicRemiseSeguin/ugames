@@ -6,10 +6,12 @@ import { createContext, useContext, ReactNode, useState } from 'react';
 interface EventContextType {
     eventData: EventModel | null;
     nbPlayersByEvent: number;
+    eventList: EventModel[];
     getById: (id: string) => Promise<void>;
     create: (eventData: EventModel, undecodedToken: string) => Promise<void>;
     update: (id: string, eventData: EventModel, undecodedToken: string) => Promise<void>;
     deleteEvent: (id: string, undecodedToken: string) => Promise<void>;
+    searchEvents: (params: string) => Promise<void>;
     join: (joinData: JoinModel, undecodedToken: string) => Promise<void>;
     getUserJoiningStatusByEvent: (userId: string, eventId: string, undecodedToken: string) => Promise<boolean>;
     unjoin: (userId: string, eventId: string, undecodedToken: string) => Promise<void>;
@@ -26,6 +28,7 @@ export const EventProvider = ({ children }: EventProviderProps) => {
 
     const [eventData, setEventData] = useState<EventModel | null>(null);
     const [nbPlayersByEvent, setNbPlayersByEvent] = useState<number>(0);
+    const [eventList, setEventList] = useState<EventModel[]>([]);
 
     const getById = async (id: string) => {
         try {
@@ -65,6 +68,17 @@ export const EventProvider = ({ children }: EventProviderProps) => {
             await eventService.delete(id, undecodedToken);
         } catch (err) {
             console.error('Error deleting event:', err);
+            throw err;
+        }
+    };
+
+    const searchEvents = async (params: string) => {
+        try {
+            const res = await eventService.searchEvents(params);
+            setEventList(res);
+        } catch (err) {
+            console.error('Error searching events:', err);
+            setEventList([]);
             throw err;
         }
     };
@@ -112,14 +126,16 @@ export const EventProvider = ({ children }: EventProviderProps) => {
     const value: EventContextType = {
         eventData,
         nbPlayersByEvent,
+        eventList,
         getById,
         create,
         update,
         deleteEvent,
+        searchEvents,
         join,
         getUserJoiningStatusByEvent,
         unjoin,
-        getNbPlayersByEvent
+        getNbPlayersByEvent,
     };
 
     return (

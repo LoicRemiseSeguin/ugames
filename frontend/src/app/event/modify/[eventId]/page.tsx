@@ -1,37 +1,205 @@
 "use client";
 
-import React from 'react';
-import { Camera, ChevronDown, X, Check, Trash2, AlertTriangle } from 'lucide-react';
+import { Fragment, useEffect, useState } from 'react';
+import { Camera, ChevronDown, X, Check, AlertTriangle } from 'lucide-react';
+import { useEvent } from '@/hooks/useEvents';
+import { EventModel } from '@/services/events';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/authContext';
+import { useGame } from '@/hooks/useGames';
+import { Combobox, Transition } from '@headlessui/react';
+import { locations, /*tagOptions,*/ timeSlots/*, useDropdown*/ } from '@/components/searchBar';
+import { DayPicker } from 'react-day-picker';
+import { format } from 'date-fns';
+import { CustomCheckbox } from '@/components/checkbox';
+import Loading from '@/components/loadingAnimation';
+import { GameModel } from '@/services/games';
 
-export default function Event({ params }:
+export default function ModifyEventPage({ params }:
     { params: { eventId: string } }) {
-    // return <h1>Modify Event : {params.eventId}</h1>;
 
-    const [showSuccessMessage, setShowSuccessMessage] = React.useState(false);
-    const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-    const [isDirty, setIsDirty] = React.useState(false);
+    const router = useRouter();
+    const { token, undecodedToken } = useAuth();
+    const { eventData, getById, update, deleteEvent } = useEvent();
+    const { game, games, getGameDataById } = useGame();
 
-    // Mock existing event data
-    const [eventData, setEventData] = React.useState({
-        name: "Friday Night Magic: Commander Edition",
-        startDate: "2024-11-22T19:00",
-        description: "Join us for an exciting evening of Commander, the most popular casual format in Magic: The Gathering. Whether you're a seasoned player or new to the format, all skill levels are welcome.",
-        numberOfPlayers: "4-8",
-        visibility: "Public",
-        links: "https://magic.wizards.com/commander",
-        tags: ["Magic: The Gathering", "Commander", "Card Games"],
-        invitedFriends: ["John Doe", "Jane Smith"],
-        coverImage: "/api/placeholder/1000/1000"
-    });
+    const [isLoading, setIsLoading] = useState(false);
 
-    // Handle form changes
-    const handleChange = (field, value) => {
-        setEventData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-        setIsDirty(true);
+    const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+    useEffect(() => {
+
+        async function fetchEventData(eventId: string) {
+            if (!undecodedToken) return;
+
+            setIsLoading(true);
+            try {
+                await getById(eventId);
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                throw err;
+            } finally {
+                setIsLoading(false);
+            }
+
+        };
+
+        if (eventData?.event_id?.toString() != params.eventId) {
+            fetchEventData(params.eventId);
+        } else {
+            getGameDataById(eventData.game_id.toString());
+
+            onClickCancel();
+        }
+
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [eventData, games, game]);
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        if (!token || !undecodedToken) return;
+
+        try {
+            const game = JSON.stringify(selectedGame);
+
+            if (!game || eventNameInputField == '' || !selectedDate || !selectedTime || selectedLocation == '') return;
+
+            const newEventData: EventModel = {
+                creator_id: token.id,
+                game_id: Number(selectedGame.game_id),
+                event_name: eventNameInputField,
+                event_description: eventDescriptionInputField,
+                event_date: selectedDate.toISOString().split('T')[0] + " " + selectedTime,
+                is_public: isPublic,
+                city: selectedLocation,
+                // tags: selectedTags
+            };
+
+            await update(params.eventId, newEventData, undecodedToken);
+
+            setShowSuccessMessage(true);
+            setTimeout(() => setShowSuccessMessage(false), 3000);
+        } catch (err) {
+            console.log(err instanceof Error ? err.message : 'Event creation failed');
+        }
     };
+
+    const onClickCancel = () => {
+        if (eventData) {
+            setEventNameInputField(eventData.event_name);
+            setEventDescriptionInputField(eventData.event_description ?? "");
+            setIsPublic(eventData.is_public);
+            setSelectedLocation(eventData.city);
+            setSelectedDate(new Date(eventData.event_date.split('T')[0]));
+            const time = eventData.event_date.split('T')[1].split(":");
+            setSelectedTime(time[0] + ":" + time[1]);
+            if (game) setSelectedGame(game);
+        }
+    };
+
+    const onClickDelete = async () => {
+        if (!undecodedToken) return;
+
+        try {
+            await deleteEvent(params.eventId, undecodedToken);
+            router.push('/');
+        } catch (err) {
+            // setError(err instanceof Error ? err.message : 'Deleting failed');
+            console.error(err instanceof Error ? err.message : 'Deleting failed');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    // Form
+    const [isPublic, setIsPublic] = useState<boolean>(false);
+    const [eventNameInputField, setEventNameInputField] = useState<string>('');
+    const [eventDescriptionInputField, setEventDescriptionInputField] = useState<string>('');
+    const [selectedLocation, setSelectedLocation] = useState<string>('');
+    const [locationQuery, setLocationQuery] = useState('');
+    const [selectedGame, setSelectedGame] = useState<string>('');
+    const [gameQuery, setGameQuery] = useState('');
+    const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+    const [isDateOpen, setIsDateOpen] = useState(false);
+    const [selectedTime, setSelectedTime] = useState<string>('');
+    const [timeQuery, setTimeQuery] = useState('');
+    // const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    // const [tagQuery, setTagQuery] = useState('');
+    // const tagsDropdown = useDropdown();
+
+    const handleChangeEventNameInputField = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setEventNameInputField(event.target.value);
+    };
+
+    const handleChangeEventDescriptionInputField = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setEventDescriptionInputField(event.target.value);
+    };
+
+    const handleLocationChange = (value: string | null) => {
+        setSelectedLocation(value || '');
+    };
+
+    const handleGameChange = (value: string | null) => {
+        setSelectedGame(value || '');
+    };
+
+    const handleTimeChange = (value: string | null) => {
+        setSelectedTime(value || '');
+    };
+
+    // const handleTagSelect = (value: string) => {
+    //     if (value && !selectedTags.includes(value)) {
+    //         setSelectedTags([...selectedTags, value]);
+    //         setTagQuery('');
+    //         tagsDropdown.close();
+    //     }
+    // };
+
+    const clearLocation = () => {
+        setSelectedLocation('');
+        setLocationQuery('');
+    };
+
+    const clearGame = () => {
+        setSelectedGame('');
+        setGameQuery('');
+    };
+
+    const clearTime = () => {
+        setSelectedTime('');
+        setTimeQuery('');
+    };
+
+    const filteredLocations = locationQuery === ''
+        ? locations
+        : locations.filter((location) => location.toLowerCase().includes(locationQuery.toLowerCase()));
+
+    const filteredGames = gameQuery === ''
+        ? games
+        : games.filter((game) => game.name.toLowerCase().includes(gameQuery.toLowerCase()));
+
+    const filteredTimes = timeQuery === ''
+        ? timeSlots
+        : timeSlots.filter((time) => time.toLowerCase().includes(timeQuery.toLowerCase()));
+
+    // const filteredTags = tagQuery === ''
+    //     ? tagOptions
+    //     : tagOptions.filter((tag) => tag.toLowerCase().includes(tagQuery.toLowerCase()));
+
+    const today = new Date();
+    const disabledDays = { before: today };
+
+    // const handleSearch = () => {
+    //     console.log({
+    //         location: selectedLocation,
+    //         date: selectedDate,
+    //         time: selectedTime,
+    //         tags: selectedTags
+    //     });
+    // };
+
+    if (isLoading || !eventData) return <Loading />;
 
     return (
         <div className="min-h-screen bg-background p-6">
@@ -39,26 +207,15 @@ export default function Event({ params }:
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-4xl font-bold text-primary">Edit Event</h1>
-                    <div className="flex gap-4">
-                        <button
-                            onClick={() => setShowDeleteDialog(true)}
-                            className="px-6 py-2 border border-primary/20 text-primary hover:bg-primary/10 rounded"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </button>
-                        <button
-                            disabled={!isDirty}
-                            className="px-6 py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Publish Changes
-                        </button>
-                    </div>
+                    {/* <button className="px-6 py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded">
+                        Publish
+                    </button> */}
                 </div>
 
                 {/* Back Button */}
-                <button className="px-6 py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded mb-6">
+                {/* <button className="px-6 py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded mb-6">
                     Back
-                </button>
+                </button> */}
 
                 {/* Cover Photo Section */}
                 <div className="border border-primary/20 rounded-lg p-6 mb-6">
@@ -66,24 +223,11 @@ export default function Event({ params }:
 
                     <div className="flex items-start gap-8">
                         <div className="text-center">
-                            <div className="relative w-32 h-32 rounded-lg border-2 border-dashed border-secondary flex items-center justify-center mb-2 overflow-hidden">
-                                {eventData.coverImage ? (
-                                    <>
-                                        <img
-                                            src={eventData.coverImage}
-                                            alt="Event cover"
-                                            className="absolute inset-0 w-full h-full object-cover"
-                                        />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                            <Camera className="w-8 h-8 text-white" />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <Camera className="w-8 h-8 text-secondary" />
-                                )}
+                            <div className="w-24 h-24 rounded-full border-2 border-dashed border-secondary flex items-center justify-center mb-2">
+                                <Camera className="w-8 h-8 text-secondary" />
                             </div>
                             <button className="px-4 py-2 text-sm border border-secondary text-secondary hover:bg-secondary/10 rounded mb-2">
-                                Change Photo
+                                Upload Photo
                             </button>
                             <button className="text-secondary text-sm hover:text-secondary/80">
                                 remove
@@ -105,167 +249,449 @@ export default function Event({ params }:
                 <div className="border border-primary/20 rounded-lg p-6">
                     <h2 className="text-xl text-primary mb-6">Event Details</h2>
 
-                    <form className="space-y-6">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-2 gap-6">
                             <div>
                                 <label className="block text-primary mb-2">Event Name*</label>
                                 <input
+                                    id="eventName"
                                     type="text"
-                                    value={eventData.name}
-                                    onChange={(e) => handleChange('name', e.target.value)}
+                                    value={eventNameInputField}
+                                    onChange={handleChangeEventNameInputField}
+                                    placeholder="Placeholder"
                                     className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-primary mb-2">Start Date & Time*</label>
+                            <div className="relative">
+                                <label className="text-primary text-xl mb-1 block">Locations</label>
+                                <Combobox value={selectedLocation} onChange={handleLocationChange}>
+                                    <div className="relative">
+                                        <div className="relative">
+                                            <Combobox.Input
+                                                className="w-full bg-background border border-primary/20 rounded px-3 py-2 text-primary/80 focus:outline-none focus:border-primary pr-16"
+                                                displayValue={(location: string) => location}
+                                                onChange={(event) => setLocationQuery(event.target.value)}
+                                                placeholder="Select your city"
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                                {selectedLocation && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            clearLocation();
+                                                        }}
+                                                        className="p-1 hover:text-primary text-primary/60 mr-1"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                                <Combobox.Button className="p-1">
+                                                    <ChevronDown className="h-4 w-4 text-primary/60" />
+                                                </Combobox.Button>
+                                            </div>
+                                        </div>
+                                        <Transition
+                                            as={Fragment}
+                                            leave="transition ease-in duration-100"
+                                            leaveFrom="opacity-100"
+                                            leaveTo="opacity-0"
+                                        >
+                                            <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-background border border-primary/20 py-1">
+                                                {filteredLocations.length === 0 ? (
+                                                    <div className="px-4 py-2 text-primary/60">Nothing found.</div>
+                                                ) : (
+                                                    filteredLocations.map((location) => (
+                                                        <Combobox.Option
+                                                            key={location}
+                                                            value={location}
+                                                            className={({ active }) =>
+                                                                `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-primary/20 text-primary' : 'text-primary/60'
+                                                                }`
+                                                            }
+                                                        >
+                                                            {({ selected }) => (
+                                                                <>
+                                                                    <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                                        {location}
+                                                                    </span>
+                                                                    {selected && (
+                                                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
+                                                                            <Check className="h-5 w-5" />
+                                                                        </span>
+                                                                    )}
+                                                                </>
+                                                            )}
+                                                        </Combobox.Option>
+                                                    ))
+                                                )}
+                                            </Combobox.Options>
+                                        </Transition>
+                                    </div>
+                                </Combobox>
+                            </div>
+                        </div>
+
+                        <div className="relative">
+                            <label className="text-primary text-xl mb-1 block">Games</label>
+                            <Combobox value={selectedGame} onChange={handleGameChange}>
                                 <div className="relative">
-                                    <input
-                                        type="datetime-local"
-                                        value={eventData.startDate}
-                                        onChange={(e) => handleChange('startDate', e.target.value)}
-                                        className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary"
-                                    />
+                                    <div className="relative">
+                                        <Combobox.Input
+                                            className="w-full bg-background border border-primary/20 rounded px-3 py-2 text-primary/80 focus:outline-none focus:border-primary pr-16"
+                                            displayValue={(game: GameModel) => game.name}
+                                            onChange={(event) => setGameQuery(event.target.value)}
+                                            placeholder="Select your game"
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                            {selectedLocation && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        clearGame();
+                                                    }}
+                                                    className="p-1 hover:text-primary text-primary/60 mr-1"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                            <Combobox.Button className="p-1">
+                                                <ChevronDown className="h-4 w-4 text-primary/60" />
+                                            </Combobox.Button>
+                                        </div>
+                                    </div>
+                                    <Transition
+                                        as={Fragment}
+                                        leave="transition ease-in duration-100"
+                                        leaveFrom="opacity-100"
+                                        leaveTo="opacity-0"
+                                    >
+                                        <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-background border border-primary/20 py-1">
+                                            {filteredGames.length === 0 ? (
+                                                <div className="px-4 py-2 text-primary/60">Nothing found.</div>
+                                            ) : (
+                                                filteredGames.map((game) => (
+                                                    <Combobox.Option
+                                                        key={game.name}
+                                                        value={game}
+                                                        className={({ active }) =>
+                                                            `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-primary/20 text-primary' : 'text-primary/60'
+                                                            }`
+                                                        }
+                                                    >
+                                                        {({ selected }) => (
+                                                            <>
+                                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                                    {game.name}
+                                                                </span>
+                                                                {selected && (
+                                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
+                                                                        <Check className="h-5 w-5" />
+                                                                    </span>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </Combobox.Option>
+                                                ))
+                                            )}
+                                        </Combobox.Options>
+                                    </Transition>
                                 </div>
+                            </Combobox>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="relative">
+                                <label className="text-primary text-xl mb-1 block">Date</label>
+                                <button
+                                    type="button"
+                                    className="w-full bg-background border border-primary/20 rounded px-3 py-2 text-left text-primary/80 focus:outline-none focus:border-primary"
+                                    onClick={() => setIsDateOpen(!isDateOpen)}
+                                >
+                                    {selectedDate ? format(selectedDate, 'dd.MM.yyyy') : 'Select your date'}
+                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-5 w-5 text-primary/60" />
+                                </button>
+                                {isDateOpen && (
+                                    <div className="absolute z-10 mt-1 bg-background border border-primary/20 rounded p-2">
+                                        <DayPicker
+                                            mode="single"
+                                            selected={selectedDate}
+                                            onSelect={(date) => {
+                                                setSelectedDate(date);
+                                                setIsDateOpen(false);
+                                            }}
+                                            disabled={disabledDays}
+                                            className="text-primary"
+                                            classNames={{
+                                                day_selected: "bg-primary text-primary-foreground",
+                                                day_today: "font-bold",
+                                                day: "hover:bg-primary/20 rounded-full",
+                                            }}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="relative">
+                                <label className="text-primary text-xl mb-1 block">Time</label>
+                                <Combobox value={selectedTime} onChange={handleTimeChange}>
+                                    <div className="relative">
+                                        <div className="relative">
+                                            <Combobox.Input
+                                                className="w-full bg-background border border-primary/20 rounded px-3 py-2 text-primary/80 focus:outline-none focus:border-primary pr-16"
+                                                displayValue={(time: string) => time}
+                                                onChange={(event) => setTimeQuery(event.target.value)}
+                                                placeholder="Select your time"
+                                            />
+                                            <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                                {selectedTime && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            clearTime();
+                                                        }}
+                                                        className="p-1 hover:text-primary text-primary/60 mr-1"
+                                                    >
+                                                        <X className="h-4 w-4" />
+                                                    </button>
+                                                )}
+                                                <Combobox.Button className="p-1">
+                                                    <ChevronDown className="h-4 w-4 text-primary/60" />
+                                                </Combobox.Button>
+                                            </div>
+                                        </div>
+                                        <Transition
+                                            as={Fragment}
+                                            leave="transition ease-in duration-100"
+                                            leaveFrom="opacity-100"
+                                            leaveTo="opacity-0"
+                                        >
+                                            <Combobox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-background border border-primary/20 py-1">
+                                                {filteredTimes.map((time) => (
+                                                    <Combobox.Option
+                                                        key={time}
+                                                        value={time}
+                                                        className={({ active }) =>
+                                                            `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-primary/20 text-primary' : 'text-primary/60'
+                                                            }`
+                                                        }
+                                                    >
+                                                        {({ selected }) => (
+                                                            <>
+                                                                <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                                    {time}
+                                                                </span>
+                                                                {selected && (
+                                                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
+                                                                        <Check className="h-5 w-5" />
+                                                                    </span>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </Combobox.Option>
+                                                ))}
+                                            </Combobox.Options>
+                                        </Transition>
+                                    </div>
+                                </Combobox>
                             </div>
                         </div>
 
                         <div>
                             <label className="block text-primary mb-2">Description*</label>
                             <textarea
-                                value={eventData.description}
-                                onChange={(e) => handleChange('description', e.target.value)}
+                                id="eventDescription"
+                                value={eventDescriptionInputField}
+                                onChange={handleChangeEventDescriptionInputField}
+                                placeholder="Placeholder"
                                 rows={4}
                                 className="w-full bg-transparent border border-secondary/20 text-secondary p-2 rounded focus:outline-none focus:border-secondary"
                             />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6">
-                            <div>
+                        <div className="grid grid-cols-1 gap-6">
+                            {/* <div>
                                 <label className="block text-primary mb-2">Number of Players*</label>
                                 <div className="relative">
                                     <input
-                                        type="text"
-                                        value={eventData.numberOfPlayers}
-                                        onChange={(e) => handleChange('numberOfPlayers', e.target.value)}
+                                        type="number"
+                                        defaultValue={2}
+                                        placeholder="Placeholder"
                                         className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary"
                                     />
-                                    <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-secondary" />
                                 </div>
-                            </div>
+                            </div> */}
                             <div>
                                 <label className="block text-primary mb-2">Public or Private*</label>
                                 <div className="relative">
-                                    <select
-                                        value={eventData.visibility}
-                                        onChange={(e) => handleChange('visibility', e.target.value)}
-                                        className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary appearance-none"
-                                    >
-                                        <option value="Public">Public</option>
-                                        <option value="Private">Private</option>
-                                    </select>
-                                    <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-secondary pointer-events-none" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-primary mb-2">Links</label>
-                            <textarea
-                                value={eventData.links}
-                                onChange={(e) => handleChange('links', e.target.value)}
-                                rows={2}
-                                className="w-full bg-transparent border border-secondary/20 text-secondary p-2 rounded focus:outline-none focus:border-secondary"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-primary mb-2">Tags</label>
-                            <div className="space-y-2">
-                                <div className="flex flex-wrap gap-2">
-                                    {eventData.tags.map((tag, index) => (
-                                        <span
-                                            key={index}
-                                            className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm flex items-center gap-2"
-                                        >
-                                            {tag}
-                                            <button
-                                                onClick={() => handleChange('tags', eventData.tags.filter((_, i) => i !== index))}
-                                                className="hover:text-primary/80"
-                                            >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
-                                <div className="relative">
-                                    <input
+                                    {/* <input
                                         type="text"
-                                        placeholder="Add new tag"
+                                        placeholder="Placeholder"
                                         className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary"
-                                        onKeyPress={(e) => {
-                                            if (e.key === 'Enter' && e.target.value) {
-                                                handleChange('tags', [...eventData.tags, e.target.value]);
-                                                e.target.value = '';
-                                            }
-                                        }}
-                                    />
+                                    /> */}
+                                    <div className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary">
+                                        <CustomCheckbox
+                                            label={isPublic ? "Public" : "Private"}
+                                            checked={isPublic}
+                                            onChange={(e) => setIsPublic(e.target.checked)}
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div>
-                            <label className="block text-primary mb-2">Invited Friends</label>
-                            <div className="space-y-2">
-                                <div className="flex flex-wrap gap-2">
-                                    {eventData.invitedFriends.map((friend, index) => (
-                                        <span
-                                            key={index}
-                                            className="px-3 py-1 rounded-full bg-primary/20 text-primary text-sm flex items-center gap-2"
-                                        >
-                                            {friend}
-                                            <button
-                                                onClick={() => handleChange('invitedFriends', eventData.invitedFriends.filter((_, i) => i !== index))}
-                                                className="hover:text-primary/80"
+                        {/* <div className="relative">
+                            <label className="text-primary text-xl mb-1 block">Tags</label>
+                            <div className="relative">
+                                <Combobox
+                                    as="div"
+                                    value={tagQuery}
+                                    onChange={handleTagSelect}
+                                    onFocus={tagsDropdown.open}
+                                >
+                                    <div className="relative">
+                                        <Combobox.Input
+                                            className="w-full bg-background border border-primary/20 rounded px-3 py-2 text-primary/80 focus:outline-none focus:border-primary pr-16"
+                                            onChange={(event) => {
+                                                setTagQuery(event.target.value);
+                                                if (!tagsDropdown.isOpen) {
+                                                    tagsDropdown.open();
+                                                }
+                                            }}
+                                            displayValue={() => tagQuery}
+                                            placeholder={selectedTags.length === 0 ? "Select your tags" : "Add more tags"}
+                                        />
+                                        <div className="absolute inset-y-0 right-0 flex items-center pr-2">
+                                            {selectedTags.length > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        setSelectedTags([]);
+                                                    }}
+                                                    className="p-1 hover:text-primary text-primary/60 mr-1"
+                                                >
+                                                    <X className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                            <Combobox.Button
+                                                className="p-1"
+                                                onClick={() => tagsDropdown.toggle()}
                                             >
-                                                <X className="w-3 h-3" />
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        placeholder="Add friend"
-                                        className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary"
-                                    />
-                                    <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-secondary" />
-                                </div>
-                            </div>
-                        </div>
+                                                <ChevronDown className="h-4 w-4 text-primary/60" />
+                                            </Combobox.Button>
+                                        </div>
+                                    </div>
 
-                        <div className="flex justify-end gap-4">
+                                    {selectedTags.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                            {selectedTags.map((tag) => (
+                                                <span
+                                                    key={tag}
+                                                    className="inline-flex items-center bg-primary/20 text-primary rounded px-2 py-1 text-sm"
+                                                >
+                                                    {tag}
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setSelectedTags(selectedTags.filter(t => t !== tag));
+                                                        }}
+                                                        className="ml-1 hover:text-primary/80"
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {tagsDropdown.isOpen && (
+                                        <Transition
+                                            as={Fragment}
+                                            show={tagsDropdown.isOpen}
+                                            leave="transition ease-in duration-100"
+                                            leaveFrom="opacity-100"
+                                            leaveTo="opacity-0"
+                                            afterLeave={() => setTagQuery('')}
+                                        >
+                                            <Combobox.Options
+                                                static
+                                                className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded bg-background border border-primary/20 py-1"
+                                            >
+                                                {filteredTags.length === 0 && tagQuery !== '' ? (
+                                                    <div className="px-4 py-2 text-primary/60">Nothing found.</div>
+                                                ) : (
+                                                    filteredTags
+                                                        .filter(tag => !selectedTags.includes(tag))
+                                                        .map((tag) => (
+                                                            <Combobox.Option
+                                                                key={tag}
+                                                                value={tag}
+                                                                className={({ active }) =>
+                                                                    `relative cursor-pointer select-none py-2 pl-10 pr-4 ${active ? 'bg-primary/20 text-primary' : 'text-primary/60'
+                                                                    }`
+                                                                }
+                                                                onClick={() => {
+                                                                    handleTagSelect(tag);
+                                                                    tagsDropdown.close();
+                                                                }}
+                                                            >
+                                                                {({ selected }) => (
+                                                                    <>
+                                                                        <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
+                                                                            {tag}
+                                                                        </span>
+                                                                        {selected && (
+                                                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary">
+                                                                                <Check className="h-5 w-5" />
+                                                                            </span>
+                                                                        )}
+                                                                    </>
+                                                                )}
+                                                            </Combobox.Option>
+                                                        ))
+                                                )}
+                                            </Combobox.Options>
+                                        </Transition>
+                                    )}
+                                </Combobox>
+                            </div>
+                        </div> */}
+
+                        {/* <div>
+                            <label className="block text-primary mb-2">Invite Friends</label>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Placeholder"
+                                    className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary"
+                                />
+                                <ChevronDown className="absolute right-2 top-3 w-4 h-4 text-secondary" />
+                            </div>
+                        </div> */}
+
+                        <div className="flex justify-end">
                             <button
                                 type="button"
-                                className="px-6 py-2 text-muted-foreground hover:text-foreground"
-                                onClick={() => {
-                                    if (isDirty) {
-                                        // Show confirmation dialog
-                                    }
-                                }}
+                                className="px-6 py-2 m-4 text-muted-foreground hover:text-foreground"
+                                onClick={onClickCancel}
                             >
                                 Cancel
                             </button>
                             <button
-                                type="submit"
-                                className="px-6 py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded"
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    setShowSuccessMessage(true);
-                                    setIsDirty(false);
-                                    setTimeout(() => setShowSuccessMessage(false), 3000);
-                                }}
+                                type="button"
+                                className="px-6 py-2 m-4 border border-secondary text-secondary hover:bg-secondary/10 rounded"
+                                onClick={() => setShowDeleteDialog(true)}
                             >
-                                Save Changes
+                                Delete
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-6 py-2 m-4 border border-secondary text-secondary hover:bg-secondary/10 rounded"
+                            >
+                                Save
                             </button>
                         </div>
                     </form>
@@ -275,7 +701,7 @@ export default function Event({ params }:
                 {showSuccessMessage && (
                     <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-primary/20 text-primary px-4 py-2 rounded-md">
                         <Check className="w-4 h-4" />
-                        <span>Changes saved successfully.</span>
+                        <span>Successfully Saved. Your event draft have been saved.</span>
                         <button
                             onClick={() => setShowSuccessMessage(false)}
                             className="ml-4"
@@ -285,7 +711,6 @@ export default function Event({ params }:
                     </div>
                 )}
 
-                {/* Delete Confirmation Dialog */}
                 {showDeleteDialog && (
                     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
                         <div className="bg-background border border-primary/20 rounded-lg p-6 max-w-md w-full mx-4">
@@ -307,7 +732,8 @@ export default function Event({ params }:
                                     className="px-4 py-2 bg-primary/20 text-primary rounded hover:bg-primary/30"
                                     onClick={() => {
                                         // Handle delete
-                                        setShowDeleteDialog(false);
+                                        // setShowDeleteDialog(false);
+                                        onClickDelete();
                                     }}
                                 >
                                     Delete Event
@@ -319,4 +745,4 @@ export default function Event({ params }:
             </div>
         </div>
     );
-}
+};

@@ -4,7 +4,11 @@ export interface UserModel {
     id?: string,
     email: string,
     username: string,
-    bio?: string
+    first_name?: string,
+    last_name?: string,
+    bio?: string,
+    city?: string,
+    registration_date?: Date
 };
 
 export interface StatisticsModel {
@@ -49,8 +53,8 @@ export const userService = {
     },
 
     // Event
-    getUserEvents: (id: string, undecodedToken: string) => {
-        return fetchWrapper(`/api/users/${id}/events`, {
+    getUserEvents: (userId: string, undecodedToken: string) => {
+        return fetchWrapper(`/api/users/${userId}/events`, {
             method: 'GET',
             undecodedToken
         });
