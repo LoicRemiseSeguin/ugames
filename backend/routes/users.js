@@ -1,11 +1,12 @@
 const express = require('express');
-const { User, EventParticipant } = require('../models');
+const { User, EventParticipant, Event } = require('../models');
 const authenticate = require('../middlewares/auth');
 const { checkAdmin, checkAdminOrSelf } = require('../middlewares/permissions');
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const SECRET_KEY = 'boardgame';
 const jwt = require('jsonwebtoken');
+const { Sequelize } = require('sequelize');
 
 router.post('/', async (req, res) => {
   try {
@@ -71,12 +72,20 @@ router.delete('/:id', authenticate, checkAdminOrSelf, async (req, res) => {
 
 router.get('/:id/events', authenticate, checkAdminOrSelf, async (req, res) => {
   try {
-    const events = await EventParticipant.findAll({
+    const participantEvents = await EventParticipant.findAll({
       where: { user_id: req.params.id },
       attributes: ['event_id'],
     });
-    const eventIds = events.map(event => event.event_id);
-    res.json(eventIds);
+    const participantEventIds = participantEvents.map(event => event.event_id);
+    const events = await Event.findAll({
+      where: {
+        [Sequelize.Op.or]: [
+          { event_id: participantEventIds }, 
+          { creator_id: req.params.id }  
+        ]
+      }
+    });
+    res.json(events);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
