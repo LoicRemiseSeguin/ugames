@@ -4,17 +4,17 @@ import EventCard from "@/components/eventCard";
 import SearchBar from "@/components/searchBar";
 import { eventService } from "@/services/events";
 import { useState } from "react";
-// import eventsData from './mock-events.json';
+import eventsData from './mock-events.json';
 
 const SearchPage = () => {
-    const [eventsData, setEventsData] = useState([]);
+    // const [eventsData, setEventsData] = useState([]);
 
-    const setup = async () => {
-        const res = await eventService.getAll();
-        setEventsData(res);
-    };
+    // const setup = async () => {
+    //     const res = await eventService.getAll();
+    //     setEventsData(res);
+    // };
 
-    setup();
+    // setup();
 
     return (
         <div className="min-h-screen">

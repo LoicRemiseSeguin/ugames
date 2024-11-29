@@ -33,7 +33,7 @@ export const GameProvider = ({ children }: GameProviderProps) => {
     };
 
     const getGameDataById = (id: string) => {
-        setGame(games.find(game => game.game_id === id) ?? null);
+        setGame(games.find(game => game.game_id == id) ?? null);
     };
 
     const value: GameContextType = {

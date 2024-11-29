@@ -1,4 +1,4 @@
-const API_URL = "DEFAULT_URL";
+const API_URL = "http://localhost:4000";
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
@@ -36,5 +36,6 @@ export async function fetchWrapper(
         throw new Error(`API error: ${response.status}`);
     }
 
+    if (method === 'DELETE') return null;
     return response.json();
 }

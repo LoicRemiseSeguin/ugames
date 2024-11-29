@@ -5,13 +5,15 @@ import { createContext, useContext, ReactNode, useState } from 'react';
 
 interface EventContextType {
     eventData: EventModel | null;
+    nbPlayersByEvent: number;
     getById: (id: string) => Promise<void>;
     create: (eventData: EventModel, undecodedToken: string) => Promise<void>;
     update: (id: string, eventData: EventModel, undecodedToken: string) => Promise<void>;
     deleteEvent: (id: string, undecodedToken: string) => Promise<void>;
     join: (joinData: JoinModel, undecodedToken: string) => Promise<void>;
-    getUserJoiningStatusByEvent: (userId: string, eventId: string, undecodedToken: string) => Promise<void>;
+    getUserJoiningStatusByEvent: (userId: string, eventId: string, undecodedToken: string) => Promise<boolean>;
     unjoin: (userId: string, eventId: string, undecodedToken: string) => Promise<void>;
+    getNbPlayersByEvent: (eventId: string) => Promise<void>;
 };
 
 interface EventProviderProps {
@@ -23,6 +25,7 @@ const EventContext = createContext<EventContextType | undefined>(undefined);
 export const EventProvider = ({ children }: EventProviderProps) => {
 
     const [eventData, setEventData] = useState<EventModel | null>(null);
+    const [nbPlayersByEvent, setNbPlayersByEvent] = useState<number>(0);
 
     const getById = async (id: string) => {
         try {
@@ -37,9 +40,11 @@ export const EventProvider = ({ children }: EventProviderProps) => {
 
     const create = async (data: EventModel, undecodedToken: string) => {
         try {
-            await eventService.create(data, undecodedToken);
+            const res = await eventService.create(data, undecodedToken);
+            setEventData(res);
         } catch (err) {
             console.error('Error creatinig event:', err);
+            setEventData(null);
             throw err;
         }
     };
@@ -75,9 +80,11 @@ export const EventProvider = ({ children }: EventProviderProps) => {
 
     const getUserJoiningStatusByEvent = async (userId: string, eventId: string, undecodedToken: string) => {
         try {
-            await eventService.getUserJoiningStatusByEvent(userId, eventId, undecodedToken);
+            const res: JoinModel = await eventService.getUserJoiningStatusByEvent(userId, eventId, undecodedToken);
+            return res.is_going;
         } catch (err) {
             console.error('Error joining event:', err);
+            return false;
             throw err;
         }
     };
@@ -91,15 +98,28 @@ export const EventProvider = ({ children }: EventProviderProps) => {
         }
     };
 
+    const getNbPlayersByEvent = async (eventId: string) => {
+        try {
+            const res = await eventService.getNbPlayersByEvent(eventId);
+            setNbPlayersByEvent(res.participant_count);
+        } catch (err) {
+            console.error('Error getting Nb Players by event:', err);
+            setNbPlayersByEvent(0);
+            throw err;
+        }
+    };
+
     const value: EventContextType = {
         eventData,
+        nbPlayersByEvent,
         getById,
         create,
         update,
         deleteEvent,
         join,
         getUserJoiningStatusByEvent,
-        unjoin
+        unjoin,
+        getNbPlayersByEvent
     };
 
     return (

@@ -2,11 +2,11 @@ import { fetchWrapper } from '@/api/fetchWrapper';
 
 export interface EventModel {
     event_id?: string,
-    creator_id?: string,
+    creator_id: string,
     game_id: number,
     event_name: string,
     event_description: string,
-    event_date: Date,
+    event_date: string,
     is_public: boolean,
     city: string,
     tags?: string[]
@@ -22,7 +22,7 @@ export interface EventFilter {
 export interface JoinModel {
     user_id: number,
     event_id: number,
-    is_going?: boolean
+    is_going: boolean
 };
 
 export const eventService = {
@@ -65,6 +65,7 @@ export const eventService = {
         });
     },
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     join: (joinData: JoinModel, undecodedToken: string) => {
         return fetchWrapper('/api/event-participants', {
             method: 'POST',
@@ -86,4 +87,9 @@ export const eventService = {
             undecodedToken
         });
     },
+
+    getNbPlayersByEvent: (eventId: string) => {
+        return fetchWrapper(`/api/events/${eventId}/nbParticipants`);
+    },
+
 };

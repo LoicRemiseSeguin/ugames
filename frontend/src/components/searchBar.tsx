@@ -7,14 +7,14 @@ import { ChevronDown, Check, X } from 'lucide-react';
 import { format } from 'date-fns';
 
 // Mock data for dropdowns
-const locations = [
+export const locations = [
     'Amsterdam', 'Berlin', 'Copenhagen', 'Dublin', 'Edinburgh',
     'Frankfurt', 'Geneva', 'Helsinki', 'Istanbul', 'London',
     'Madrid', 'Oslo', 'Paris', 'Rome', 'Stockholm',
     'Vienna', 'Warsaw', 'Zurich'
 ];
 
-const timeSlots = [
+export const timeSlots = [
     '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
     '12:00', '12:30', '13:00', '13:30', '14:00', '14:30',
     '15:00', '15:30', '16:00', '16:30', '17:00', '17:30',
@@ -22,7 +22,7 @@ const timeSlots = [
     '21:00', '21:30', '22:00'
 ];
 
-const tagOptions = [
+export const tagOptions = [
     'Strategy', 'Family', 'Party', 'Card Game', 'Cooperative',
     'Competitive', 'Deck Building', 'Adventure', 'Fantasy',
     'Sci-Fi', 'Historical', 'Mystery', 'Economic', 'War Game',
@@ -31,7 +31,7 @@ const tagOptions = [
     'Educational', 'Kids', 'Adult', 'Quick Play', 'Long Game'
 ].sort();
 
-const useDropdown = () => {
+export const useDropdown = () => {
     const [isOpen, setIsOpen] = useState(false);
 
     const open = () => setIsOpen(true);
