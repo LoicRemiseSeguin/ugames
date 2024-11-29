@@ -3,6 +3,8 @@ import { fetchWrapper } from '@/api/fetchWrapper';
 export interface RegisterModel {
     email: string,
     username: string,
+    first_name: string,
+    last_name: string,
     password_hash: string
 };
 

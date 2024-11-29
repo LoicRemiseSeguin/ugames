@@ -27,12 +27,16 @@ export default function SignUp() {
     try {
       const form = e.currentTarget;
       const emailInput = form.email as HTMLInputElement;
-      const usernameInput = form['first-name'] as HTMLInputElement;
+      const usernameInput = form.username as HTMLInputElement;
+      const firstNameInput = form["first-name"] as HTMLInputElement;
+      const lastNameInput = form["last-name"] as HTMLInputElement;
       const passwordInput = form.password as HTMLInputElement;
 
       const registerData: RegisterModel = {
         email: emailInput.value,
         username: usernameInput.value,
+        first_name: firstNameInput.value,
+        last_name: lastNameInput.value,
         password_hash: passwordInput.value
       };
 
@@ -96,6 +100,16 @@ export default function SignUp() {
         <div className="w-full md:w-1/2 pr-8">
           <h1 className="text-4xl font-bold text-secondary mb-8">Sign Up</h1>
           <form className="space-y-6" onSubmit={handleSubmit}>
+            <div>
+              <label className="text-sm text-secondary" htmlFor="username">Username*</label>
+              <input
+                id="username"
+                type="text"
+                placeholder="Placeholder"
+                className="w-full mt-1 p-2 bg-background border-b border-secondary/30 focus:outline-none focus:border-secondary placeholder-secondary/30"
+                required
+              />
+            </div>
             <div className="flex space-x-4">
               <div className="w-1/2">
                 <label className="text-sm text-secondary" htmlFor="first-name">First Name*</label>
@@ -160,6 +174,9 @@ export default function SignUp() {
                   )}
                 </button>
               </div>
+              <p className="text-xs text-secondary/60 mt-2">
+                It must be a combination of minimum 8 letters, numbers, and symbols.
+              </p>
             </div>
 
             <div className="flex items-center space-x-2">
