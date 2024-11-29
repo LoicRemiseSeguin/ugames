@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:4000";
+const API_URL = "DEFAULT_URL";//"http://localhost:4000";
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
 
