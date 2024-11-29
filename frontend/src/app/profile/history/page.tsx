@@ -1,8 +1,11 @@
 // app/profile/history/page.tsx
 "use client";
 
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Tags, Image } from 'lucide-react';
+import { useUser } from '@/hooks/useUsers';
+import { useAuth } from '@/hooks/authContext';
+import Link from 'next/link';
 
 interface HistoryItem {
     id: number;
@@ -12,40 +15,75 @@ interface HistoryItem {
 }
 
 export default function HistoryPage() {
+
+    const { token, undecodedToken } = useAuth();
+    const { userEvents, userData, get, getUserEvents } = useUser();
+
+    const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
+
     const [activeTab, setActiveTab] = useState<'saved' | 'history'>('saved');
 
-    const historyItems: HistoryItem[] = [
-        {
-            id: 1,
-            image: '/placeholder.jpg',
-            description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
-            type: 'saved'
-        },
-        {
-            id: 2,
-            image: '/placeholder.jpg',
-            description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
-            type: 'saved'
-        },
-        {
-            id: 3,
-            image: '/placeholder.jpg',
-            description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
-            type: 'saved'
-        },
-        {
-            id: 4,
-            image: '/placeholder.jpg',
-            description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
-            type: 'history'
-        },
-        {
-            id: 5,
-            image: '/placeholder.jpg',
-            description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
-            type: 'history'
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+
+        async function fetchUserData(id: string) {
+            setIsLoading(true);
+            await get(id, undecodedToken ?? "");
+            await getUserEvents(id, undecodedToken ?? "");
+            setIsLoading(false);
         }
-    ];
+
+        if (token) {
+            if (userData && userEvents) {
+                const events: HistoryItem[] = [];
+                userEvents.forEach(event => events.push({
+                    id: event.event_id,
+                    image: '/placeholder.jpg',
+                    description: event.event_name,
+                    type: 'history'
+                }));
+                setHistoryItems([...events]);
+                console.log(events);
+            } else {
+                fetchUserData(token.id);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [userData, userEvents]);
+
+    // const historyItems: HistoryItem[] = [
+    //     {
+    //         id: 1,
+    //         image: '/placeholder.jpg',
+    //         description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
+    //         type: 'saved'
+    //     },
+    //     {
+    //         id: 2,
+    //         image: '/placeholder.jpg',
+    //         description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
+    //         type: 'saved'
+    //     },
+    //     {
+    //         id: 3,
+    //         image: '/placeholder.jpg',
+    //         description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
+    //         type: 'saved'
+    //     },
+    //     {
+    //         id: 4,
+    //         image: '/placeholder.jpg',
+    //         description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
+    //         type: 'history'
+    //     },
+    //     {
+    //         id: 5,
+    //         image: '/placeholder.jpg',
+    //         description: 'Lorem ipsum dolor sit amet consectetur. Diam tempus non id sapien bibendum turpis. Integer arcu cras sagittis dictumst sit. Integer ac dui nunc donec phasellus sit.',
+    //         type: 'history'
+    //     }
+    // ];
 
     const HistorySection = ({ type }: { type: 'saved' | 'history' }) => {
         const items = historyItems.filter(item => item.type === type);
@@ -65,22 +103,23 @@ export default function HistoryPage() {
                     )}
                 </div>
 
-                <div className="flex items-center gap-2 mb-4">
+                {/* <div className="flex items-center gap-2 mb-4">
                     <Tags className={`w-5 h-5 ${type === 'saved' ? 'text-accent' : 'text-primary'}`} />
                     <span className={`${type === 'saved' ? 'text-accent' : 'text-primary'}`}>Tags</span>
-                </div>
+                </div> */}
 
                 <div className="space-y-6">
                     {items.map((item) => (
                         <div key={item.id} className="flex gap-4 items-center pb-4 border-b border-primary/20">
-                            <div className={`w-16 h-16 rounded-full flex items-center justify-center ${type === 'saved' ? 'bg-accent/20' : 'bg-primary/20'
+                            <Link href={'/event/1'} className={`w-16 h-16 rounded-full flex items-center justify-center ${type === 'saved' ? 'bg-accent/20' : 'bg-primary/20'
                                 }`}>
                                 <Image className={`w-8 h-8 ${type === 'saved' ? 'text-accent' : 'text-primary'
                                     }`} />
-                            </div>
-                            <p className="text-sm text-muted-foreground flex-1">
+                            </Link>
+                            {/* <p className="text-sm text-muted-foreground flex-1">
                                 {item.description}
-                            </p>
+                            </p> */}
+                            <Link href={'/event/1'} className={`${type === 'saved' ? 'text-accent' : 'text-primary'}`}>{item.description}</Link>
                         </div>
                     ))}
                 </div>

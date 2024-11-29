@@ -5,8 +5,10 @@ import { createContext, useContext, ReactNode, useState } from 'react';
 
 interface UserContextType {
     userData: UserModel | null;
+    userEvents: [] | null;
     get: (id: string, undecodedToken: string) => Promise<void>;
     update: (id: string, userData: UserModel, undecodedToken: string) => Promise<void>;
+    getUserEvents: (eventId: string, undecodedToken: string) => Promise<void>;
 };
 
 interface UserProviderProps {
@@ -18,6 +20,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: UserProviderProps) => {
 
     const [userData, setUserData] = useState<UserModel | null>(null);
+    const [userEvents, setUserEvents] = useState<[] | null>([]);
 
     const get = async (id: string, undecodedToken: string) => {
         try {
@@ -41,10 +44,23 @@ export const UserProvider = ({ children }: UserProviderProps) => {
         }
     };
 
+    const getUserEvents = async (userId: string, undecodedToken: string) => {
+        try {
+            const res = await userService.getUserEvents(userId, undecodedToken);
+            setUserEvents(res);
+        } catch (err) {
+            console.error('Error getting user events:', err);
+            setUserEvents(null);
+            throw err;
+        }
+    };
+
     const value: UserContextType = {
         userData,
+        userEvents,
         get,
-        update
+        update,
+        getUserEvents
     };
 
     return (

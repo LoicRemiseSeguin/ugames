@@ -15,11 +15,11 @@ import { CustomCheckbox } from '@/components/checkbox';
 import Loading from '@/components/loadingAnimation';
 import { GameModel } from '@/services/games';
 
-const CreateEventPage = () => {
+export default function CreateEventPage() {
 
     const router = useRouter();
     const { token, undecodedToken } = useAuth();
-    const { eventData, create } = useEvent();
+    const { /*eventData,*/ create } = useEvent();
     const { games } = useGame();
 
     const [isLoading, setIsLoading] = useState(false);
@@ -31,18 +31,15 @@ const CreateEventPage = () => {
         if (!token || !undecodedToken) return;
 
         try {
-            const form = e.currentTarget;
-            const eventNameInput = form.eventName as HTMLInputElement;
-            const eventDescriptionInput = form.eventDescription as HTMLInputElement;
             const game = JSON.stringify(selectedGame);
 
-            if (!game || eventNameInput.value == '' || !selectedDate || !selectedTime || selectedLocation == '') return;
+            if (!game || eventNameInputField == '' || !selectedDate || !selectedTime || selectedLocation == '') return;
 
             const newEventData: EventModel = {
                 creator_id: token.id,
                 game_id: Number(selectedGame.game_id),
-                event_name: eventNameInput.value,
-                event_description: eventDescriptionInput.value,
+                event_name: eventNameInputField,
+                event_description: eventDescriptionInputField,
                 event_date: selectedDate.toISOString().split('T')[0] + " " + selectedTime,
                 is_public: isPublic,
                 city: selectedLocation,
@@ -52,11 +49,12 @@ const CreateEventPage = () => {
             setIsLoading(true);
 
             await create(newEventData, undecodedToken);
-            if (eventData) {
-                router.push(`/event/${eventData.event_id}`);
-            } else {
-                router.push('/');
-            }
+            router.push(`/profile/`);
+            // if (eventData) {
+            //     router.push(`/event/${eventData.event_id}`);
+            // } else {
+            //     router.push('/');
+            // }
         } catch (err) {
             console.log(err instanceof Error ? err.message : 'Event creation failed');
         } finally {
@@ -65,7 +63,9 @@ const CreateEventPage = () => {
     };
 
     // Form
-    const [isPublic, setIsPublic] = useState(false);
+    const [isPublic, setIsPublic] = useState<boolean>(false);
+    const [eventNameInputField, setEventNameInputField] = useState<string>('');
+    const [eventDescriptionInputField, setEventDescriptionInputField] = useState<string>('');
     const [selectedLocation, setSelectedLocation] = useState<string>('');
     const [locationQuery, setLocationQuery] = useState('');
     const [selectedGame, setSelectedGame] = useState<string>('');
@@ -77,6 +77,14 @@ const CreateEventPage = () => {
     // const [selectedTags, setSelectedTags] = useState<string[]>([]);
     // const [tagQuery, setTagQuery] = useState('');
     // const tagsDropdown = useDropdown();
+
+    const handleChangeEventNameInputField = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setEventNameInputField(event.target.value);
+    };
+
+    const handleChangeEventDescriptionInputField = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setEventDescriptionInputField(event.target.value);
+    };
 
     const handleLocationChange = (value: string | null) => {
         setSelectedLocation(value || '');
@@ -196,6 +204,8 @@ const CreateEventPage = () => {
                                 <input
                                     id="eventName"
                                     type="text"
+                                    value={eventNameInputField}
+                                    onChange={handleChangeEventNameInputField}
                                     placeholder="Placeholder"
                                     className="w-full bg-transparent border-b border-secondary/20 text-secondary py-2 focus:outline-none focus:border-secondary"
                                 />
@@ -440,6 +450,8 @@ const CreateEventPage = () => {
                             <label className="block text-primary mb-2">Description*</label>
                             <textarea
                                 id="eventDescription"
+                                value={eventDescriptionInputField}
+                                onChange={handleChangeEventDescriptionInputField}
                                 placeholder="Placeholder"
                                 rows={4}
                                 className="w-full bg-transparent border border-secondary/20 text-secondary p-2 rounded focus:outline-none focus:border-secondary"
@@ -644,5 +656,3 @@ const CreateEventPage = () => {
         </div>
     );
 };
-
-export default CreateEventPage;

@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { Calendar, Clock, Users, MapPin, Share2, Heart/*, MessageSquare*/ } from 'lucide-react';
+import {
+    Calendar, Clock, Users, MapPin, Share2, Heart,/*, MessageSquare*/
+    AlertTriangle
+} from 'lucide-react';
 import { useEvent } from '@/hooks/useEvents';
 import Loading from '@/components/loadingAnimation';
 import { useGame } from '@/hooks/useGames';
 import { useAuth } from '@/hooks/authContext';
 import { JoinModel } from '@/services/events';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/hooks/useUsers';
 
 export default function Event({ params }:
     { params: { eventId: string } }) {
@@ -19,12 +23,19 @@ export default function Event({ params }:
     const { token, undecodedToken } = useAuth();
     const { eventData, nbPlayersByEvent, getById, getUserJoiningStatusByEvent, join, unjoin, deleteEvent, getNbPlayersByEvent } = useEvent();
     const { game, games, getGameDataById } = useGame();
+    const { userData, get } = useUser();
 
     const [isCreator, setIsCreator] = useState<boolean>(false);
     const [joining, setJoining] = useState<boolean>(false);
 
     const [isLoading, setIsLoading] = useState(false);
     // const [error, setError] = useState<string | null>(null);
+
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
+    const onClickModify = () => {
+        router.push(`/event/modify/${params.eventId}`);
+    };
 
     const onClickJoin = async () => {
         if (!token || !undecodedToken) return;
@@ -78,8 +89,6 @@ export default function Event({ params }:
             try {
                 await getById(eventId);
 
-                setIsCreator(eventData?.creator_id == token?.id);
-
                 if (token && undecodedToken) {
                     try {
                         const res = await getUserJoiningStatusByEvent(token.id, eventId, undecodedToken);
@@ -87,6 +96,31 @@ export default function Event({ params }:
                     } catch (err) {
                         console.error('Error joining status:', err);
                         setJoining(false);
+                        throw err;
+                    }
+                }
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                setJoining(false);
+                // setError(err);
+                throw err;
+            } finally {
+                setIsLoading(false);
+            }
+
+        };
+
+        async function fetchUserData() {
+            if (!undecodedToken) return;
+
+            try {
+                if (eventData != null && !isUserCreator) {
+                    try {
+                        console.log("start fetching");
+                        await get(eventData.creator_id, undecodedToken);
+                        console.log("done fetching");
+                    } catch (err) {
+                        console.error('Error fetching creator data:', err);
                         throw err;
                     }
                 }
@@ -109,8 +143,16 @@ export default function Event({ params }:
             getGameDataById(eventData?.game_id.toString() ?? "");
         }
 
+        const isUserCreator = eventData?.creator_id == token?.id;
+
+        setIsCreator(isUserCreator);
+
+        if (eventData != null) {
+            fetchUserData();
+        }
+
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [eventData, games, game]);
+    }, [eventData, games, game, userData]);
 
     useEffect(() => {
 
@@ -232,20 +274,25 @@ export default function Event({ params }:
                     {/* Sidebar - 1 column */}
                     < div className="space-y-6" >
                         {/* Host Info */}
-                        < div className="bg-background/80 backdrop-blur-sm border border-primary/20 rounded-lg p-6" >
-                            <h2 className="text-xl text-primary mb-4">Host</h2>
-                            <div className="flex items-center gap-4">
-                                {/* <img
+                        {
+                            isCreator || userData ?
+                                < div className="bg-background/80 backdrop-blur-sm border border-primary/20 rounded-lg p-6" >
+                                    <h2 className="text-xl text-primary mb-4">Host</h2>
+                                    <div className="flex items-center gap-4">
+                                        {/* <img
                                     src="/api/placeholder/48/48"
                                     alt="Host avatar"
                                     className="w-12 h-12 rounded-full"
                                 /> */}
-                                <div>
-                                    <h3 className="font-medium text-foreground">Game Store Staff</h3>
-                                    <p className="text-sm text-muted-foreground">Member since 2020</p>
-                                </div>
-                            </div>
-                        </div >
+                                        <div>
+                                            <h3 className="font-medium text-foreground">{isCreator ? token?.username : userData.username}</h3>
+                                            {
+                                                userData?.registration_date ? <p className="text-sm text-muted-foreground">Member since {userData.registration_date.toString()}</p> : null
+                                            }
+                                        </div>
+                                    </div>
+                                </div > : null
+                        }
 
                         {/* Attendees */}
                         < div className="bg-background/80 backdrop-blur-sm border border-primary/20 rounded-lg p-6" >
@@ -262,16 +309,21 @@ export default function Event({ params }:
                                 joining ?
                                     <button onClick={onClickUnjoin} className="w-full py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded">
                                         Not going to Event
-                                    </button> :
-                                    <button onClick={onClickJoin} className="w-full py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded">
-                                        Join Event
-                                    </button>
+                                    </button> : nbPlayersByEvent >= game.max_players ? null :
+                                        <button onClick={onClickJoin} className="w-full py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded">
+                                            Join Event
+                                        </button>
                             }
                             {
                                 isCreator ?
-                                    <button onClick={onClickDelete} className="w-full py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded">
-                                        Delete
-                                    </button> : null
+                                    <>
+                                        <button onClick={onClickModify} className="w-full mt-8 py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded">
+                                            Modify
+                                        </button>
+                                        <button onClick={() => setShowDeleteDialog(true)} className="w-full mt-8 py-2 border border-secondary text-secondary hover:bg-secondary/10 rounded">
+                                            Delete
+                                        </button>
+                                    </> : null
                             }
                         </div >
 
@@ -292,6 +344,39 @@ export default function Event({ params }:
                         }
                     </div >
                 </div >
+
+                {showDeleteDialog && (
+                    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+                        <div className="bg-background border border-primary/20 rounded-lg p-6 max-w-md w-full mx-4">
+                            <div className="flex items-center gap-4 text-primary mb-4">
+                                <AlertTriangle className="w-6 h-6" />
+                                <h2 className="text-xl font-medium">Delete Event</h2>
+                            </div>
+                            <p className="text-muted-foreground mb-6">
+                                Are you sure you want to delete this event? This action cannot be undone.
+                            </p>
+                            <div className="flex justify-end gap-4">
+                                <button
+                                    className="px-4 py-2 text-muted-foreground hover:text-foreground"
+                                    onClick={() => setShowDeleteDialog(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    className="px-4 py-2 bg-primary/20 text-primary rounded hover:bg-primary/30"
+                                    onClick={() => {
+                                        // Handle delete
+                                        // setShowDeleteDialog(false);
+                                        onClickDelete();
+                                    }}
+                                >
+                                    Delete Event
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
             </div >
         </div >
     );
